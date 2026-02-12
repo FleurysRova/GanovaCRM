@@ -1,0 +1,133 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║           📞 SIMULATION ZOIPER - AIDE-MÉMOIRE RAPIDE 📞           ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────┐
+│  🚀 DÉMARRAGE EN 4 COMMANDES                                       │
+└────────────────────────────────────────────────────────────────────┘
+
+1️⃣  CONTACTS DE TEST
+    mysql -u root -p crm_call < test_contacts.sql
+
+2️⃣  ALLER DANS LE PROJET
+    cd C:\Users\Rovan\Documents\Zanova_Entreprise\CRM_call_center\crm_call
+
+3️⃣  LANCER LE SERVEUR
+    symfony server:start
+    OU
+    php -S localhost:8000 -t public
+
+4️⃣  OUVRIR DANS LE NAVIGATEUR
+    http://localhost:8000/contacts
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  ⚙️  CONFIGURATION ZOIPER (1 FOIS)                                 │
+└────────────────────────────────────────────────────────────────────┘
+
+📝 Créer un compte SIP :
+   → https://www.linphone.org/freesip/home
+   → Username : votreNom2026
+   → Password : votre_mdp
+
+⚙️  Dans Zoiper5 :
+   → Cliquez "Add" (bouton vert)
+   → Type : SIP
+   → Domain : sip.linphone.org
+   → Username : votreNom2026
+   → Password : votre_mdp
+   → ✅ Vérifier le POINT VERT
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  🧪 TEST ÉCHO (pour entendre quelque chose)                        │
+└────────────────────────────────────────────────────────────────────┘
+
+mysql -u root -p crm_call
+
+INSERT INTO contacts (nom, telephone, email, source, campaign_id, status, created_at)
+VALUES ('Test Echo', 'sip:echo@sip.linphone.org', 'test@test.com', 'test',
+        (SELECT id FROM campaigns LIMIT 1), 'nouveau', NOW());
+
+→ Cliquez sur ce contact → Vous entendrez votre voix en écho ! 🎤
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  🐛 DÉPANNAGE RAPIDE                                               │
+└────────────────────────────────────────────────────────────────────┘
+
+❌ Page 404 ?
+   → php bin/console cache:clear
+
+❌ Zoiper ne s'ouvre pas ?
+   → Windows : Paramètres > Applications > Par protocole > TEL = Zoiper5
+
+❌ Aucun contact affiché ?
+   → mysql -u root -p crm_call -e "SELECT * FROM contacts;"
+
+❌ Zoiper rouge (pas connecté) ?
+   → Vérifier identifiants SIP dans Zoiper
+   → Vérifier connexion Internet
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  📚 DOCUMENTATION DISPONIBLE                                       │
+└────────────────────────────────────────────────────────────────────┘
+
+START.md              → ⚡ Guide ultra-rapide (3 min) - COMMENCEZ ICI
+RECAP_ZOIPER.md       → 📋 Guide visuel en 5 étapes
+SIMULATION_GUIDE.md   → 📖 Documentation complète A-Z
+ZOIPER_TEST_CONFIG.md → ⚙️  Configuration SIP détaillée
+SUMMARY.md            → 📄 Résumé complet du projet
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  ✅ ROUTES DISPONIBLES                                             │
+└────────────────────────────────────────────────────────────────────┘
+
+/                           → Page d'accueil
+/login                      → Connexion
+/contacts                   → 📞 Liste des contacts (CLICK-TO-CALL)
+/contacts/campaign/{id}     → Contacts filtrés par campagne
+/api/management/...         → API REST pour gestion
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  🎯 FICHIERS CRÉÉS                                                 │
+└────────────────────────────────────────────────────────────────────┘
+
+📁 Backend
+   src/Controller/ContactController.php
+   src/Controller/Api/ManagementController.php (mis à jour)
+
+📁 Frontend
+   templates/contacts/list.html.twig
+
+📁 Scripts
+   test_contacts.sql
+   test_setup.ps1
+
+📁 Documentation
+   START.md
+   RECAP_ZOIPER.md
+   SIMULATION_GUIDE.md
+   ZOIPER_TEST_CONFIG.md
+   SUMMARY.md
+   CHEATSHEET.txt (ce fichier)
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│  🎉 PROCHAINES ÉTAPES                                              │
+└────────────────────────────────────────────────────────────────────┘
+
+1. Ouvrez START.md
+2. Suivez les 4 étapes
+3. Cliquez sur un numéro de téléphone
+4. Zoiper s'ouvre et compose ! 🚀
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║                     Bonne simulation ! 📞🎊                        ║
+╚════════════════════════════════════════════════════════════════════╝

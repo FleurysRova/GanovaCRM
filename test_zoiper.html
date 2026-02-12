@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test Zoiper Click-to-Call</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .test-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .test-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .test-section h2 {
+            color: #475569;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            text-decoration: none;
+        }
+
+        .test-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .test-button:active {
+            transform: scale(0.98);
+        }
+
+        .phone-number {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .instructions {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .instructions h3 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .instructions ol {
+            color: #78350f;
+            margin-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin: 0.5rem 0;
+        }
+
+        .status {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        a.phone-link {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: block;
+            text-align: center;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        a.phone-link:hover {
+            color: #059669;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Zoiper</h1>
+        <p class="subtitle">Testez la configuration Click-to-Call</p>
+
+        <div class="test-section">
+            <h2>📞 Test 1 : Protocole callto:</h2>
+            <p>Cliquez sur le bouton ci-dessous pour tester le protocole <code>callto:</code></p>
+            <div class="phone-number">📱 0340011122</div>
+            <a href="callto:0340011122" class="test-button">
+                <span>📞</span>
+                <span>Tester callto:0340011122</span>
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>📱 Test 2 : Protocole tel:</h2>
+            <p>Cliquez sur le bouton ci-dessous pour tester le protocole <code>tel:</code></p>
+            <div class="phone-number">📱 0340011133</div>
+            <a href="tel:0340011133" class="test-button">
+                <span>📞</span>
+                <span>Tester tel:0340011133</span>
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>🔗 Test 3 : Lien direct</h2>
+            <p>Cliquez directement sur le numéro :</p>
+            <a href="callto:+33340011144" class="phone-link">
+                +33 3 40 01 11 44
+            </a>
+        </div>
+
+        <div class="instructions">
+            <h3>✅ Que devrait-il se passer ?</h3>
+            <ol>
+                <li>En cliquant, votre navigateur pourrait demander "Ouvrir Zoiper5 ?"</li>
+                <li>Cochez "Toujours autoriser" si proposé</li>
+                <li>Zoiper devrait s'ouvrir avec le numéro pré-rempli</li>
+                <li>Vous verrez le statut "Calling..." dans Zoiper</li>
+            </ol>
+        </div>
+
+        <div class="status status-info">
+            💡 Si rien ne se passe, exécutez le script <code>configure_zoiper.ps1</code>
+        </div>
+    </div>
+
+    <script>
+        // Logging pour debug
+        document.querySelectorAll('[href^="callto:"], [href^="tel:"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                console.log('🔔 Tentative d\'appel:', this.href);
+                
+                // Afficher un message temporaire
+                const status = document.createElement('div');
+                status.className = 'status status-success';
+                status.textContent = '✅ Clic détecté ! Zoiper devrait s\'ouvrir...';
+                document.querySelector('.test-container').appendChild(status);
+                
+                setTimeout(() => status.remove(), 3000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -3,59 +3,61 @@
 {% block title %}Connexion | Zanova CRM{% endblock %}
 
 {% block body %}
-    <div class="login-container">
-        <div class="login-header">
-            <div class="logo-icon" style="margin-bottom: 20px;">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="24" height="24" rx="12" fill="#2563eb" fill-opacity="0.1"/>
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <h1>Se connecter</h1>
-            <p>Accédez à votre tableau de bord CRM Zanova</p>
-        </div>
-
-        <form method="post">
-            {% if error %}
-                <div class="alert alert-danger">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
-                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-icon" style="margin-bottom: 20px;">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="12" fill="#2563eb" fill-opacity="0.1"/>
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    {{ error.messageKey|trans(error.messageData, 'security') }}
                 </div>
-            {% endif %}
-
-            {% if app.user %}
-                <div class="alert alert-info">
-                    Connecté en tant que <strong>{{ app.user.userIdentifier }}</strong>.
-                    <a href="{{ path('app_logout') }}" style="margin-left: 10px;">Déconnexion</a>
-                </div>
-            {% endif %}
-
-            <div class="form-group">
-                <label for="inputEmail">Adresse Email</label>
-                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus placeholder="nom@entreprise.com">
+                <h1>Se connecter</h1>
+                <p>Accédez à votre tableau de bord CRM Zanova</p>
             </div>
 
-            <div class="form-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label for="inputPassword">Mot de passe</label>
-                    {# Optional: <a href="#" style="font-size: 0.8rem; margin-bottom: 0.6rem;">Oublié ?</a> #}
+            <form method="post">
+                {% if error %}
+                    <div class="alert alert-danger">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                {% if app.user %}
+                    <div class="alert alert-info">
+                        Connecté en tant que <strong>{{ app.user.userIdentifier }}</strong>.
+                        <a href="{{ path('app_logout') }}" style="margin-left: 10px;">Déconnexion</a>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="inputEmail">Adresse Email</label>
+                    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus placeholder="nom@entreprise.com">
                 </div>
-                <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required placeholder="••••••••">
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label for="inputPassword">Mot de passe</label>
+                        {# Optional: <a href="#" style="font-size: 0.8rem; margin-bottom: 0.6rem;">Oublié ?</a> #}
+                    </div>
+                    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required placeholder="••••••••">
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button class="btn btn-primary" type="submit">
+                    Connexion au système
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>&copy; {{ "now"|date("Y") }} Zanova Entreprise. Tous droits réservés.</p>
             </div>
-
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-            <button class="btn btn-primary" type="submit">
-                Connexion au système
-            </button>
-        </form>
-
-        <div class="login-footer">
-            <p>&copy; {{ "now"|date("Y") }} Zanova Entreprise. Tous droits réservés.</p>
         </div>
     </div>
 {% endblock %}
