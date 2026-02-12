@@ -185,6 +185,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $sip_extension = null;
+
+    public function getSipExtension(): ?string
+    {
+        return $this->sip_extension;
+    }
+
+    public function setSipExtension(?string $sip_extension): static
+    {
+        $this->sip_extension = $sip_extension;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->created_at;

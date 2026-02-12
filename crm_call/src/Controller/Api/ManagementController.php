@@ -4,8 +4,11 @@ namespace App\Controller\Api;
 
 use App\Entity\Campaign;
 use App\Entity\CampaignField;
+use App\Entity\CampaignUser;
+use App\Entity\Contact;
 use App\Entity\User;
 use App\Repository\CampaignRepository;
+use App\Repository\ContactRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -145,6 +148,7 @@ class ManagementController extends AbstractController
                 'prenom' => $user->getPrenom(),
                 'role' => $user->getRoleUsers(),
                 'status' => $user->getStatus(),
+                'sip_extension' => $user->getSipExtension(),
             ];
         }
         return $this->json($data);
@@ -161,6 +165,7 @@ class ManagementController extends AbstractController
         $user->setPrenom($data['prenom']);
         $user->setRoleUsers($data['role'] ?? 'agent');
         $user->setStatus($data['status'] ?? 'active');
+        $user->setSipExtension($data['sip_extension'] ?? null);
         
         $hashed = $hasher->hashPassword($user, $data['password'] ?? 'admin123');
         $user->setPassword($hashed);
@@ -180,6 +185,7 @@ class ManagementController extends AbstractController
         if (isset($data['email'])) $user->setEmail($data['email']);
         if (isset($data['role'])) $user->setRoleUsers($data['role']);
         if (isset($data['status'])) $user->setStatus($data['status']);
+        if (isset($data['sip_extension'])) $user->setSipExtension($data['sip_extension']);
 
         $em->flush();
         return $this->json(['status' => 'success']);

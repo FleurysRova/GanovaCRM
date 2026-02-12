@@ -1,0 +1,454 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}📞 Contacts - CRM Call Center{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .campaign-filter {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .campaign-filter label {
+            display: block;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        .campaign-filter select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .campaign-filter select:hover {
+            border-color: #667eea;
+        }
+
+        .campaign-filter select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: #667eea;
+        }
+
+        .contact-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .contact-name {
+            flex: 1;
+        }
+
+        .contact-name h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .contact-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-nouveau {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-rappele {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-termine {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .info-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .icon-phone {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .icon-email {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .icon-source {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        /* Style pour le lien de téléphone clickable */
+        .phone-link {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phone-link:hover {
+            color: #059669;
+            text-decoration: underline;
+        }
+
+        .phone-link::after {
+            content: "📞";
+            font-size: 1.2rem;
+            animation: ring 2s infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 30% { transform: rotate(-10deg); }
+            20%, 40% { transform: rotate(10deg); }
+        }
+
+        .call-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .call-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .call-button:active {
+            transform: scale(0.98);
+        }
+
+        .empty-state {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .zoiper-status {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .zoiper-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+            }
+        }
+
+        .zoiper-text {
+            color: #475569;
+            font-weight: 500;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="header">
+        <h1>📞 Gestion des Contacts</h1>
+        <p>Cliquez sur un numéro de téléphone pour appeler avec Zoiper</p>
+    </div>
+
+    <div class="zoiper-status">
+        <div class="zoiper-indicator"></div>
+        <div class="zoiper-text">
+            Zoiper détecté - Click-to-Call activé
+        </div>
+    </div>
+
+    {% if campaigns is defined and campaigns|length > 0 %}
+    <div class="campaign-filter">
+        <label for="campaign-select">📋 Filtrer par campagne</label>
+        <select id="campaign-select" onchange="window.location.href = this.value">
+            <option value="{{ path('contacts_list') }}">Tous les contacts</option>
+            {% for campaign in campaigns %}
+                <option value="{{ path('contacts_by_campaign', {id: campaign.id}) }}" 
+                    {% if currentCampaign is defined and currentCampaign.id == campaign.id %}selected{% endif %}>
+                    {{ campaign.nom }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    {% if contacts|length > 0 %}
+        <div class="contacts-grid">
+            {% for contact in contacts %}
+                <div class="contact-card">
+                    <div class="contact-header">
+                        <div class="contact-avatar">
+                            {{ contact.nom|slice(0, 1)|upper }}
+                        </div>
+                        <div class="contact-name">
+                            <h3>{{ contact.nom }}</h3>
+                            <span class="contact-status status-{{ contact.status }}">
+                                {{ contact.status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="contact-info">
+                        <div class="info-row">
+                            <div class="info-icon icon-phone">📞</div>
+                            <div class="info-content">
+                                <div class="info-label">Téléphone</div>
+                                <div class="info-value">
+                                    <a href="tel:{{ contact.telephone }}" class="phone-link" title="Cliquer pour appeler avec Zoiper">
+                                        {{ contact.telephone }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if contact.email %}
+                        <div class="info-row">
+                            <div class="info-icon icon-email">📧</div>
+                            <div class="info-content">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">{{ contact.email }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if contact.source %}
+                        <div class="info-row">
+                            <div class="info-icon icon-source">🏷️</div>
+                            <div class="info-content">
+                                <div class="info-label">Source</div>
+                                <div class="info-value">{{ contact.source }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <button class="call-button"
+                            onclick="window.location.href='sip:{{ contact.telephone }}@sip.linphone.org'">
+                        📞 Appeler maintenant
+                    </button>
+
+
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <h2>Aucun contact trouvé</h2>
+            <p>Ajoutez des contacts via l'API pour commencer</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Détection de Zoiper et gestion des clics
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Click-to-Call activé pour Zoiper');
+        
+        // Notification au premier clic (optionnel)
+        let firstClick = true;
+        document.querySelectorAll('.phone-link, .call-button').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (firstClick) {
+                    firstClick = false;
+                    console.log('Tentative d\'appel vers:', this.href);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
