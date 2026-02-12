@@ -230,8 +230,9 @@
 
 	/* VARIABLES THEMES HYPER-PREMIUM */:root,
 	[data-theme="dark"] {
-		--bg-app: #0a0f1d; /* Midnight Blue profond au lieu du noir */
+		--bg-app: #0a0f1d;
 		--bg-surface: #12192b;
+		--bg-surface-rgb: 18, 25, 43;
 		--bg-card: rgba(30, 41, 59, 0.5);
 		--sidebar-bg: rgba(15, 23, 42, 0.9);
 		--text-main: #f1f5f9;
@@ -251,6 +252,7 @@
 	[data-theme="light"] {
 		--bg-app: #f1f5f9;
 		--bg-surface: #ffffff;
+		--bg-surface-rgb: 255, 255, 255;
 		--bg-card: rgba(255, 255, 255, 0.8);
 		--sidebar-bg: #ffffff;
 		--text-main: #0f172a;
@@ -277,17 +279,57 @@
 		background: var(--bg-app);
 		color: var(--text-main);
 		font-family: 'Inter', sans-serif;
-		transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 		height: 100vh;
+		width: 100vw;
 		overflow: hidden;
-		display: flex;
+		display: flex; /* Added flex to body */
 	}
 
-	.screen {
+	#full-app {
 		height: 100vh;
 		width: 100vw;
 		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.screen {
+		flex: 1;
+		display: flex;
 		position: relative;
+		overflow: hidden;
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+	}
+
+	.sidebar-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(4px);
+		z-index: 900;
+		display: none;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	.sidebar-overlay.active {
+		display: block;
+		opacity: 1;
+	}
+
+	.top-header {
+		padding: 1.25rem 2rem;
+		background: rgba(var(--bg-surface-rgb), 0.8);
+		backdrop-filter: blur(15px);
+		border-bottom: 1px solid var(--border);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		position: sticky;
+		top: 0;
+		z-index: 50;
 	}
 	.hidden {
 		display: none !important;
@@ -296,6 +338,7 @@
 	/* SIDEBAR GLASSMORPHISM */
 	.sidebar {
 		width: 280px;
+		flex-shrink: 0; /* Prevent shrinking */
 		background: var(--sidebar-bg);
 		backdrop-filter: blur(20px);
 		-webkit-backdrop-filter: blur(20px);
@@ -462,8 +505,11 @@
 		display: flex;
 		flex-direction: column;
 		overflow-y: auto;
+		overflow-x: hidden;
 		background: var(--bg-app);
 		position: relative;
+		min-width: 0;
+		height: 100%;
 	}
 	.content-area::before {
 		content: '';
@@ -478,8 +524,15 @@
 		z-index: 0;
 	}
 
+	.screen {
+		flex: 1;
+		display: flex;
+		position: relative;
+		overflow: hidden;
+	}
+
 	.top-header {
-		padding: 1.5rem 3rem;
+		padding: 1.25rem 2rem;
 		background: rgba(var(--bg-surface-rgb), 0.8);
 		backdrop-filter: blur(15px);
 		border-bottom: 1px solid var(--border);
@@ -490,6 +543,7 @@
 		top: 0;
 		z-index: 50;
 	}
+
 	.header-left h2 {
 		font-family: 'Outfit';
 		font-weight: 800;
@@ -497,11 +551,13 @@
 		margin: 0;
 		letter-spacing: -0.02em;
 	}
+
 	.top-actions {
 		display: flex;
 		gap: 1.5rem;
 		align-items: center;
 	}
+
 	.status-box {
 		font-size: 0.8rem;
 		color: var(--text-dim);
@@ -509,6 +565,7 @@
 		align-items: center;
 		gap: 8px;
 	}
+
 	.status-indicator {
 		width: 8px;
 		height: 8px;
@@ -518,9 +575,7 @@
 	}
 
 	.view-content {
-		padding: 3rem;
-		max-width: 1600px;
-		margin: 0 auto;
+		padding: 2rem;
 		width: 100%;
 		box-sizing: border-box;
 		position: relative;
@@ -534,6 +589,7 @@
 		gap: 2rem;
 		margin-bottom: 3rem;
 	}
+
 	.stat-card {
 		background: var(--bg-card);
 		padding: 2rem;
@@ -543,10 +599,12 @@
 		box-shadow: 0 20px 40px var(--shadow);
 		transition: transform 0.3s ease, border-color 0.3s ease;
 	}
+
 	.stat-card:hover {
 		transform: translateY(-8px);
 		border-color: var(--primary);
 	}
+
 	.stat-card label {
 		font-size: 0.85rem;
 		color: var(--text-dim);
@@ -554,6 +612,7 @@
 		letter-spacing: 1px;
 		font-weight: 700;
 	}
+
 	.stat-card h3 {
 		font-size: 2.5rem;
 		margin: 10px 0 0;
@@ -569,6 +628,7 @@
 		grid-template-columns: 1.8fr 1fr;
 		gap: 2rem;
 	}
+
 	.panel {
 		background: var(--bg-card);
 		padding: 2rem;
@@ -577,6 +637,7 @@
 		backdrop-filter: blur(10px);
 		box-shadow: 0 15px 30px var(--shadow);
 	}
+
 	.panel-header {
 		display: flex;
 		justify-content: space-between;
@@ -585,12 +646,14 @@
 		border-bottom: 1px solid var(--border);
 		padding-bottom: 1rem;
 	}
+
 	.panel-header h3 {
 		font-family: 'Outfit';
 		font-size: 1.25rem;
 		margin: 0;
 		font-weight: 700;
 	}
+
 
 	/* TABLES LUXE */
 	.table-container {
@@ -1467,176 +1530,6 @@
 		}
 	}
 
-	/* Typography ultra-compacte - Style exemple */
-	h1 {
-		font-size: 0.875rem;
-	}
-	h2 {
-		font-size: 0.75rem;
-	}
-	h3 {
-		font-size: 0.6875rem;
-	}
-	h4 {
-		font-size: 0.625rem;
-	}
-	h5 {
-		font-size: 0.6875rem;
-	}
-	h6 {
-		font-size: 0.625rem;
-	}
-
-	/* Cards ultra-compactes - Style exemple */
-	.card {
-		margin-bottom: 0.5rem;
-	}
-
-	.card-body {
-		padding: 0.5rem;
-	}
-
-	.card-header {
-		padding: 0.375rem 0.5rem;
-	}
-
-	/* Tableaux ultra-compacts - Style exemple */
-	.table {
-		font-size: 0.625rem;
-		margin-bottom: 0;
-	}
-
-	.table th {
-		padding: 0.375rem 0.25rem;
-		font-size: 0.625rem;
-	}
-
-	.table td {
-		padding: 0.375rem 0.25rem;
-		font-size: 0.625rem;
-	}
-
-	/* Boutons ultra-compacts - Style exemple */
-	.btn {
-		padding: 0.25rem 0.5rem;
-		font-size: 0.625rem;
-	}
-
-	.btn-sm {
-		padding: 0.1875rem 0.375rem;
-		font-size: 0.625rem;
-	}
-
-	/* Badges ultra-compacts - Style exemple */
-	.badge {
-		font-size: 0.5625rem;
-		padding: 0.125rem 0.25rem;
-	}
-
-	/* Espacements ultra-réduits - Style exemple */
-	.mb-4 {
-		margin-bottom: 0.5rem;
-	}
-	.mb-3 {
-		margin-bottom: 0.375rem;
-	}
-	.mb-2 {
-		margin-bottom: 0.25rem;
-	}
-	.mb-1 {
-		margin-bottom: 0.125rem;
-	}
-
-	.p-4 {
-		padding: 0.5rem;
-	}
-	.p-3 {
-		padding: 0.375rem;
-	}
-	.p-2 {
-		padding: 0.25rem;
-	}
-	.p-1 {
-		padding: 0.125rem;
-	}
-
-	/* Icônes ultra-compactes - Style exemple */
-	.icon-box {
-		padding: 0.25rem;
-		font-size: 0.625rem;
-	}
-
-	/* Containers ultra-compacts - Style exemple */
-	.view-content {
-		padding: 0.5rem;
-	}
-
-	.row.g-4 > * {
-		margin-bottom: 0.5rem;
-	}
-
-	/* Mode indicator ultra-compact - Style exemple */
-	.mode-indicator {
-		font-size: 0.5rem;
-		padding: 0.25rem 0.375rem;
-	}
-
-	/* Sidebar ultra-compacte */
-	.sidebar {
-		width: 180px;
-	}
-
-	.sidebar-label {
-		font-size: 0.625rem;
-	}
-
-	/* Top header ultra-compact */
-	.top-header {
-		padding: 0.5rem 0.75rem;
-	}
-
-	/* Mobile ultra-compact */
-	@media(max-width: 768px) {
-		h1 {
-			font-size: 0.75rem;
-		}
-		h2 {
-			font-size: 0.625rem;
-		}
-		h3 {
-			font-size: 0.5625rem;
-		}
-		h4 {
-			font-size: 0.5rem;
-		}
-		h5 {
-			font-size: 0.5625rem;
-		}
-		h6 {
-			font-size: 0.5rem;
-		}
-
-		.card-body {
-			padding: 0.375rem;
-		}
-		.table {
-			font-size: 0.5rem;
-		}
-		.table th,
-		.table td {
-			padding: 0.25rem 0.125rem;
-		}
-		.btn {
-			padding: 0.1875rem 0.375rem;
-			font-size: 0.5rem;
-		}
-		.view-content {
-			padding: 0.375rem;
-		}
-		.sidebar {
-			width: 160px;
-		}
-	}
 
 	/* LOADER LUXE */
 	.loader-overlay {
