@@ -4,8 +4,11 @@ namespace App\Controller\Api;
 
 use App\Entity\Campaign;
 use App\Entity\CampaignField;
+use App\Entity\CampaignUser;
+use App\Entity\Contact;
 use App\Entity\User;
 use App\Repository\CampaignRepository;
+use App\Repository\ContactRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,24 +55,24 @@ class ManagementController extends AbstractController
             $campaign = new Campaign();
             $campaign->setNom($data['nom']);
             $campaign->setDescription($data['description'] ?? '');
-            
+
             if (!empty($data['date_debut'])) {
                 $campaign->setDateDebut(new \DateTimeImmutable($data['date_debut']));
             }
             if (!empty($data['date_fin'])) {
                 $campaign->setDateFin(new \DateTimeImmutable($data['date_fin']));
             }
-            
+
             $responsable = null;
             if (!empty($data['responsable_id'])) {
                 $responsable = $userRepo->find($data['responsable_id']);
             }
-            
+
             // Si pas de responsable spécifié, tenter d'utiliser l'utilisateur connecté
             if (!$responsable) {
                 $responsable = $this->getUser();
             }
-            
+
             $campaign->setResponsable($responsable);
 
             $em->persist($campaign);
@@ -95,9 +98,11 @@ class ManagementController extends AbstractController
                 return $this->json(['error' => 'Données JSON invalides'], 400);
             }
 
-            if (isset($data['nom'])) $campaign->setNom($data['nom']);
-            if (isset($data['description'])) $campaign->setDescription($data['description']);
-            
+            if (isset($data['nom']))
+                $campaign->setNom($data['nom']);
+            if (isset($data['description']))
+                $campaign->setDescription($data['description']);
+
             if (!empty($data['date_debut'])) {
                 $campaign->setDateDebut(new \DateTimeImmutable($data['date_debut']));
             } else {
@@ -109,10 +114,11 @@ class ManagementController extends AbstractController
             } else {
                 $campaign->setDateFin(null);
             }
-            
+
             if (isset($data['responsable_id'])) {
                 $responsable = $userRepo->find($data['responsable_id']);
-                if ($responsable) $campaign->setResponsable($responsable);
+                if ($responsable)
+                    $campaign->setResponsable($responsable);
             }
 
             $em->flush();
@@ -154,14 +160,14 @@ class ManagementController extends AbstractController
     public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $user = new User();
         $user->setEmail($data['email']);
         $user->setNom($data['nom']);
         $user->setPrenom($data['prenom']);
         $user->setRoleUsers($data['role'] ?? 'agent');
         $user->setStatus($data['status'] ?? 'active');
-        
+
         $hashed = $hasher->hashPassword($user, $data['password'] ?? 'admin123');
         $user->setPassword($hashed);
 
@@ -175,11 +181,16 @@ class ManagementController extends AbstractController
     public function updateUser(User $user, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (isset($data['nom'])) $user->setNom($data['nom']);
-        if (isset($data['prenom'])) $user->setPrenom($data['prenom']);
-        if (isset($data['email'])) $user->setEmail($data['email']);
-        if (isset($data['role'])) $user->setRoleUsers($data['role']);
-        if (isset($data['status'])) $user->setStatus($data['status']);
+        if (isset($data['nom']))
+            $user->setNom($data['nom']);
+        if (isset($data['prenom']))
+            $user->setPrenom($data['prenom']);
+        if (isset($data['email']))
+            $user->setEmail($data['email']);
+        if (isset($data['role']))
+            $user->setRoleUsers($data['role']);
+        if (isset($data['status']))
+            $user->setStatus($data['status']);
 
         $em->flush();
         return $this->json(['status' => 'success']);
@@ -221,7 +232,7 @@ class ManagementController extends AbstractController
     public function addField(Campaign $campaign, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $field = new CampaignField();
         $field->setCampaign($campaign);
         $field->setLabel($data['label']);
@@ -240,11 +251,16 @@ class ManagementController extends AbstractController
     public function updateField(CampaignField $field, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (isset($data['label'])) $field->setLabel($data['label']);
-        if (isset($data['type'])) $field->setFieldType($data['type']);
-        if (isset($data['options'])) $field->setOptions($data['options']);
-        if (isset($data['required'])) $field->setIsRequired($data['required']);
-        if (isset($data['position'])) $field->setPosition($data['position']);
+        if (isset($data['label']))
+            $field->setLabel($data['label']);
+        if (isset($data['type']))
+            $field->setFieldType($data['type']);
+        if (isset($data['options']))
+            $field->setOptions($data['options']);
+        if (isset($data['required']))
+            $field->setIsRequired($data['required']);
+        if (isset($data['position']))
+            $field->setPosition($data['position']);
 
         $em->flush();
         return $this->json(['status' => 'success']);
@@ -281,11 +297,13 @@ class ManagementController extends AbstractController
     {
         try {
             $user = $userRepo->find($userId);
-            if (!$user) return $this->json(['error' => 'Utilisateur introuvable'], 404);
+            if (!$user)
+                return $this->json(['error' => 'Utilisateur introuvable'], 404);
 
             // Vérifier si déjà assigné
             $existing = $em->getRepository(CampaignUser::class)->findOneBy(['campaign' => $campaign, 'user' => $user]);
-            if ($existing) return $this->json(['error' => 'Ce membre est déjà affecté à cette campagne'], 400);
+            if ($existing)
+                return $this->json(['error' => 'Ce membre est déjà affecté à cette campagne'], 400);
 
             $assignment = new CampaignUser();
             $assignment->setCampaign($campaign);
@@ -324,6 +342,7 @@ class ManagementController extends AbstractController
                 'email' => $c->getEmail(),
                 'source' => $c->getSource(),
                 'status' => $c->getStatus(),
+                'autre' => $c->getAutre(),
             ];
         }
         return $this->json($data);
@@ -339,10 +358,55 @@ class ManagementController extends AbstractController
         $contact->setTelephone($data['telephone']);
         $contact->setEmail($data['email'] ?? null);
         $contact->setSource($data['source'] ?? 'manuel');
-        
+        $contact->setAutre($data['autre'] ?? null);
+
         $em->persist($contact);
         $em->flush();
 
         return $this->json(['status' => 'success', 'id' => $contact->getId()], 201);
+    }
+
+    #[Route('/contacts/{id}', name: 'contact_show', methods: ['GET'])]
+    public function showContact(Contact $contact): JsonResponse
+    {
+        return $this->json([
+            'id' => $contact->getId(),
+            'nom' => $contact->getNom(),
+            'telephone' => $contact->getTelephone(),
+            'email' => $contact->getEmail(),
+            'source' => $contact->getSource(),
+            'status' => $contact->getStatus(),
+            'autre' => $contact->getAutre(),
+            'campaign_id' => $contact->getCampaign()?->getId(),
+        ]);
+    }
+
+    #[Route('/contacts/{id}', name: 'contact_update', methods: ['PUT'])]
+    public function updateContact(Contact $contact, Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['nom']))
+            $contact->setNom($data['nom']);
+        if (isset($data['telephone']))
+            $contact->setTelephone($data['telephone']);
+        if (isset($data['email']))
+            $contact->setEmail($data['email']);
+        if (isset($data['source']))
+            $contact->setSource($data['source']);
+        if (isset($data['status']))
+            $contact->setStatus($data['status']);
+        if (isset($data['autre']))
+            $contact->setAutre($data['autre']);
+
+        $em->flush();
+        return $this->json(['status' => 'success']);
+    }
+
+    #[Route('/contacts/{id}', name: 'contact_delete', methods: ['DELETE'])]
+    public function deleteContact(Contact $contact, EntityManagerInterface $em): JsonResponse
+    {
+        $em->remove($contact);
+        $em->flush();
+        return $this->json(['status' => 'success']);
     }
 }
