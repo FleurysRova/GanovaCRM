@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ganova CRM - Plateforme de Gestion
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<link rel="stylesheet" href="{{ asset('styles/dashboard.css') }}">
+{% endblock %}
+
+{% block body %}
+	{% include 'components/_loader.html.twig' %}
+
+	{# Écran d'authentification #}
+	{% if not authenticated|default(false) %}
+		{% include 'components/_auth-card.html.twig' %}
+	{% endif %}
+
+	{# Layout Application Principal #}
+	<div
+		id="main-dashboard" class="app-layout {{ not authenticated|default(false) ? 'hidden' : '' }}">
+
+		{# Sidebar Navigation #}
+		{% include 'components/_sidebar.html.twig' with { 'activeView': 'dashboard' } %}
+
+		{# Overlay mobile #}
+		<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+		{# Contenu Principal #}
+		<main
+			class="view-content">
+
+			{# En-tête #}
+			{% include 'components/_top-header.html.twig' %}
+
+			{# Conteneur de Vues Dynamiques #}
+			<div
+				id="views-container" class="animate-fade-in">
+
+				{# Dashboard Orchestrator #}
+				{% if role|default('admin') == 'agent' %}
+					{% include 'views/_agent-dashboard.html.twig' %}
+				{% elseif role|default('admin') == 'supervisor' %}
+					{% include 'views/_supervisor-dashboard.html.twig' %}
+				{% else %}
+					{% include 'views/_manager-dashboard.html.twig' %}
+				{% endif %}
+
+				{# Autres Vues #}
+				{% include 'views/_statistics.html.twig' %}
+				{% include 'views/_campaigns.html.twig' %}
+				{% include 'views/_users.html.twig' %}
+				{% include 'views/_contacts.html.twig' %}
+			</div>
+
+		</main>
+	</div>
+
+	{# Modale Globale #}
+	{% include 'components/_modal.html.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+	<script src="{{ asset('js/dashboard.js') }}"></script>
+{% endblock %}

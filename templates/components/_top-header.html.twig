@@ -1,0 +1,17 @@
+<header class="top-header">
+	<div class="header-left">
+		<button id="mobile-menu-toggle" class="btn-mobile">
+			<i class="fas fa-bars"></i>
+		</button>
+		<h2 id="page-title">{{ pageTitle|default('Tableau de Bord') }}</h2>
+	</div>
+	<div class="top-actions">
+		<button onclick="App.toggleTheme()" class="btn-icon-alt" title="Mode Sombre/Clair">
+			<i class="fas fa-adjust"></i>
+		</button>
+		<div class="status-box">
+			<span class="status-indicator"></span>
+			<span class="res-hide">Serveur Opérationnel</span>
+		</div>
+	</div>
+</header>

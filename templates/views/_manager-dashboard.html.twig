@@ -1,0 +1,172 @@
+<div
+	id="overview-view" class="view">
+	<!-- KPIs Principaux avec Bootstrap Grid -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-3 col-lg-6">
+			{% include 'components/_stat-card.html.twig' with {
+                label: 'Campagnes Actives',
+                id: 'stat-campaigns',
+                value: '0',
+                icon: 'fas fa-chart-line',
+                icon_bg: 'bg-blue-100 dark:bg-blue-900',
+                icon_color: 'text-blue-600 dark:text-blue-400',
+                trend: '+12%',
+                status: '0% de progression',
+                status_id: 'campaigns-progress',
+                show_progress: true,
+                progress_id: 'campaigns-progress-bar'
+            } %}
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			{% include 'components/_stat-card.html.twig' with {
+                label: 'Agents Connectés',
+                id: 'stat-agents',
+                value: '0',
+                icon: 'fas fa-users',
+                icon_bg: 'bg-green-100 dark:bg-green-900',
+                icon_color: 'text-green-600 dark:text-green-400',
+                trend: 'Live',
+                trend_bg: 'bg-info-subtle text-info dark:bg-info-dark dark:text-info-light',
+                trend_dir: 'circle text-success',
+                status: '0 en appel / 0 disponible',
+                status_id: 'agents-status',
+                show_progress: true,
+                progress_id: 'agents-progress-bar',
+                progress_bg: 'bg-gradient-to-r from-green-500 to-green-600'
+            } %}
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			{% include 'components/_stat-card.html.twig' with {
+                label: 'Total Appels Jour',
+                id: 'stat-calls',
+                value: '0',
+                icon: 'fas fa-phone',
+                icon_bg: 'bg-purple-100 dark:bg-purple-900',
+                icon_color: 'text-purple-600 dark:text-purple-400',
+                trend: "Aujourd'hui",
+                trend_bg: 'bg-warning-subtle text-warning dark:bg-warning-dark dark:text-warning-light',
+                trend_dir: 'clock',
+                status: 'Durée moyenne: 0s',
+                status_id: 'calls-duration',
+                show_progress: true,
+                progress_id: 'calls-progress-bar',
+                progress_bg: 'bg-gradient-to-r from-purple-500 to-purple-600'
+            } %}
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			{% include 'components/_stat-card.html.twig' with {
+                label: 'Taux Qualification',
+                id: 'stat-qualification',
+                value: '0%',
+                icon: 'fas fa-check-circle',
+                icon_bg: 'bg-emerald-100 dark:bg-emerald-900',
+                icon_color: 'text-emerald-600 dark:text-emerald-400',
+                trend: 'Excellent',
+                trend_dir: 'arrow-trend-up',
+                status: 'Stable',
+                status_id: 'qualification-trend',
+                show_progress: true,
+                progress_id: 'qualification-progress-bar',
+                progress_bg: 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+            } %}
+		</div>
+	</div>
+
+	<!-- Performance des Agents et Supervision -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-trophy text-warning me-2"></i>Top Performers Agents
+						</h5>
+						<select class="form-select form-select-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg" onchange="App.updateAgentRanking(this.value)" style="width: auto;">
+							<option value="calls">Par appels</option>
+							<option value="duration">Par durée</option>
+							<option value="qualification">Par qualification</option>
+						</select>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="top-agents" class="ranking-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-satellite-dish text-danger me-2 animate-pulse"></i>Supervision Temps Réel
+						</h5>
+						<div class="d-flex align-items-center">
+							<span class="badge bg-success rounded-pill me-2">
+								<i class="fas fa-circle text-xs me-1"></i>Live
+							</span>
+							<button class="btn btn-sm btn-outline-secondary rounded-lg" onclick="App.refreshSupervision()">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="realtime-supervision" class="supervision-grid" style="max-height: 300px; overflow-y: auto;"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Activité et Campagnes -->
+	<div class="row g-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-chart-line text-info me-2"></i>Activité Récente
+						</h5>
+						<div class="btn-group btn-group-sm" role="group">
+							<button type="button" class="btn btn-outline-primary active" onclick="App.filterActivity('all')">Tout</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterActivity('calls')">Appels</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterActivity('qualifications')">Qualifications</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="activity-log" class="activity-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-bullseye text-primary me-2"></i>Campagnes en Cours
+						</h5>
+						<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshCampaigns()">
+							<i class="fas fa-sync-alt"></i>
+						</button>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="active-campaigns" class="campaign-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

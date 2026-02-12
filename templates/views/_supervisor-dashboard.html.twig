@@ -1,0 +1,117 @@
+<div
+	id="supervisor-overview-view" class="view hidden">
+	<!-- Supervision en Temps Réel -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-satellite-dish text-danger me-2 animate-pulse"></i>Supervision Temps Réel
+						</h5>
+						<div class="d-flex align-items-center">
+							<span class="badge bg-success rounded-pill me-2">
+								<i class="fas fa-circle text-xs me-1"></i>Live
+							</span>
+							<button class="btn btn-sm btn-outline-secondary rounded-lg" onclick="App.refreshSupervision()">
+								<i class="fas fa-sync-alt"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="supervisor-realtime" class="supervision-grid" style="max-height: 400px; overflow-y: auto;"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-exclamation-triangle text-warning me-2"></i>Alertes Actives
+						</h5>
+						<span class="badge bg-warning rounded-pill" id="supervisor-alert-count">0</span>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="supervisor-alerts" class="alert-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Performance des Agents et Qualité -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-trophy text-warning me-2"></i>Top Performers Agents
+						</h5>
+						<select class="form-select form-select-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg" onchange="App.updateSupervisorRanking(this.value)" style="width: auto;">
+							<option value="calls">Par appels</option>
+							<option value="duration">Par durée</option>
+							<option value="qualification">Par qualification</option>
+							<option value="quality">Par qualité</option>
+						</select>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="supervisor-top-agents" class="ranking-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-chart-line text-info me-2"></i>Qualification des Appels
+						</h5>
+						<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshQualificationStats()">
+							<i class="fas fa-sync-alt"></i>
+						</button>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<canvas id="qualification-chart" width="400" height="200"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Campagnes Supervisées -->
+	<div class="row g-4">
+		<div class="col-12">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-bullseye text-primary me-2"></i>Mes Campagnes Supervisées
+						</h5>
+						<div class="btn-group btn-group-sm" role="group">
+							<button type="button" class="btn btn-outline-primary active" onclick="App.filterSupervisorCampaigns('all')">Toutes</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterSupervisorCampaigns('active')">Actives</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterSupervisorCampaigns('alert')">Alertes</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="supervisor-campaigns" class="campaign-grid"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,29 @@
+<div id="contacts-view" class="view hidden">
+	<div class="view-header-flex">
+		<div class="title-group">
+			<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Répertoire Global</h2>
+			<p style="color: var(--text-dim); margin: 5px 0 0 0;">Visualisez l'ensemble de vos contacts prospectés</p>
+		</div>
+	</div>
+
+	<div class="dashboard-panels" style="margin-top: 2rem;">
+		<div class="panel">
+			<div class="panel-header">
+				<h3>Liste des Contacts</h3>
+				<div id="contact-actions-area"></div>
+			</div>
+			{% include 'components/_data-table.html.twig' with {
+                id: 'contact-list-body',
+                headers: ['Contact', 'Coordonnées', 'Source', 'Statut']
+            } %}
+		</div>
+		<div class="panel">
+			<div class="panel-header">
+				<h3>Campagnes</h3>
+			</div>
+			<div
+				id="contact-campaign-selector" style="display:flex; flex-direction:column; gap:8px;"><!-- Rempli par JS -->
+			</div>
+		</div>
+	</div>
+</div>
