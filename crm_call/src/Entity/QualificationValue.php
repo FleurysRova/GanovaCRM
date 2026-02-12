@@ -19,9 +19,9 @@ class QualificationValue
     #[ORM\JoinColumn(nullable: false)]
     private ?Call $call = null;
 
-    #[ORM\ManyToOne(targetEntity: QualificationField::class, inversedBy: 'qualificationValues')]
+    #[ORM\ManyToOne(targetEntity: CampaignField::class, inversedBy: 'qualificationValues')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?QualificationField $field = null;
+    private ?CampaignField $field = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $value = null;
@@ -42,12 +42,12 @@ class QualificationValue
         return $this;
     }
 
-    public function getField(): ?QualificationField
+    public function getField(): ?CampaignField
     {
         return $this->field;
     }
 
-    public function setField(?QualificationField $field): static
+    public function setField(?CampaignField $field): static
     {
         $this->field = $field;
         return $this;

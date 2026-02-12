@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use App\Repository\CampaignFieldRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,12 +36,16 @@ class CampaignField
     #[ORM\Column(options: ["default" => 0])]
     private ?int $position = 0;
 
+    #[ORM\OneToMany(mappedBy: 'field', targetEntity: QualificationValue::class, cascade: ['persist', 'remove'])]
+    private Collection $qualificationValues;
+
     #[ORM\Column(options: ["default" => "CURRENT_TIMESTAMP"])]
     private ?\DateTimeImmutable $created_at = null;
 
     public function __construct()
     {
         $this->created_at = new \DateTimeImmutable();
+        $this->qualificationValues = new ArrayCollection();
     }
 
     public function getId(): ?int

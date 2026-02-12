@@ -4,7 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Call;
 use App\Entity\CallQualification;
-use App\Entity\QualificationField;
+use App\Entity\CampaignField;
 use App\Entity\QualificationValue;
 use App\Entity\AgentStatus;
 use App\Entity\Campaign;
@@ -12,7 +12,7 @@ use App\Entity\Contact;
 use App\Entity\User;
 use App\Repository\CallRepository;
 use App\Repository\AgentStatusRepository;
-use App\Repository\QualificationFieldRepository;
+use App\Repository\CampaignFieldRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -90,45 +90,88 @@ class CallController extends AbstractController
     #[Route('/calls/{id}/qualify', name: 'qualify', methods: ['POST'])]
     public function qualifyCall(Call $call, Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        try {
+            $data = json_decode($request->getContent(), true);
 
-        $qualification = new CallQualification();
-        $qualification->setCall($call);
-        $qualification->setStatus($data['status'] ?? 'QUALIFIE');
-        $qualification->setQualifiedAt(new \DateTime());
+            // Log pour déboguer
+            error_log("=== QUALIFICATION DATA ===");
+            error_log("Call ID: " . $call->getId());
+            error_log("Status: " . ($data['status'] ?? 'N/A'));
+            error_log("Values received: " . json_encode($data['values'] ?? []));
 
-        $em->persist($qualification);
+            // Récupérer ou créer la qualification
+            $qualification = $call->getCallQualification();
+            if (!$qualification) {
+                $qualification = new CallQualification();
+                $qualification->setCall($call);
+                $em->persist($qualification);
+            }
 
-        // Sauvegarder les valeurs des champs personnalisés
-        if (isset($data['values']) && is_array($data['values'])) {
-            foreach ($data['values'] as $fieldId => $value) {
-                $field = $em->getRepository(QualificationField::class)->find($fieldId);
-                if ($field) {
-                    $qualValue = new QualificationValue();
-                    $qualValue->setCall($call);
-                    $qualValue->setField($field);
-                    $qualValue->setValue((string) $value);
-                    $em->persist($qualValue);
+            $qualification->setStatus($data['status'] ?? 'QUALIFIE');
+            $qualification->setQualifiedAt(new \DateTime());
+
+            // Sauvegarder les valeurs des champs personnalisés
+            $savedCount = 0;
+            if (isset($data['values']) && is_array($data['values'])) {
+                foreach ($data['values'] as $fieldId => $value) {
+                    // Skip empty values
+                    if (empty($value) && $value !== '0') {
+                        error_log("Skipping empty value for field {$fieldId}");
+                        continue;
+                    }
+
+                    // Convert fieldId to integer
+                    $fieldIdInt = (int) $fieldId;
+
+                    $field = $em->getRepository(CampaignField::class)->find($fieldIdInt);
+                    if ($field) {
+                        // Chercher si une valeur existe déjà pour ce champ et cet appel
+                        $qualValue = $em->getRepository(QualificationValue::class)->findOneBy([
+                            'call' => $call,
+                            'field' => $field
+                        ]);
+
+                        if (!$qualValue) {
+                            $qualValue = new QualificationValue();
+                            $qualValue->setCall($call);
+                            $qualValue->setField($field);
+                            $em->persist($qualValue);
+                        }
+
+                        $qualValue->setValue((string) $value);
+                        $savedCount++;
+                    }
                 }
             }
+
+            $em->flush();
+
+            return $this->json([
+                'status' => 'success',
+                'values_saved' => $savedCount
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("ERROR in qualifyCall: " . $e->getMessage());
+            return $this->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        $em->flush();
-
-        return $this->json(['status' => 'success']);
     }
 
     // --- GESTION DES CHAMPS DE QUALIFICATION (ADMIN) ---
 
     #[Route('/campaigns/{id}/qualif-fields', name: 'fields_list', methods: ['GET'])]
-    public function listQualifFields(Campaign $campaign, QualificationFieldRepository $repo): JsonResponse
+    public function listQualifFields(Campaign $campaign, CampaignFieldRepository $repo): JsonResponse
     {
         $fields = $repo->findBy(['campaign' => $campaign]);
         $data = array_map(fn($f) => [
             'id' => $f->getId(),
             'label' => $f->getLabel(),
-            'type' => $f->getType(),
-            'required' => $f->isRequired()
+            'type' => $f->getFieldType(),
+            'required' => $f->isIsRequired()
         ], $fields);
 
         return $this->json($data);
@@ -140,11 +183,11 @@ class CallController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        $field = new QualificationField();
+        $field = new CampaignField();
         $field->setCampaign($campaign);
         $field->setLabel($data['label']);
-        $field->setType($data['type'] ?? 'text');
-        $field->setRequired($data['required'] ?? false);
+        $field->setFieldType($data['type'] ?? 'text');
+        $field->setIsRequired($data['required'] ?? false);
 
         $em->persist($field);
         $em->flush();
@@ -154,15 +197,15 @@ class CallController extends AbstractController
 
     #[Route('/qualif-fields/{id}', name: 'fields_update', methods: ['PUT'])]
     #[IsGranted('ROLE_RESPONSABLE')]
-    public function updateQualifField(QualificationField $field, Request $request, EntityManagerInterface $em): JsonResponse
+    public function updateQualifField(CampaignField $field, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (isset($data['label']))
             $field->setLabel($data['label']);
         if (isset($data['type']))
-            $field->setType($data['type']);
+            $field->setFieldType($data['type']);
         if (isset($data['required']))
-            $field->setRequired($data['required']);
+            $field->setIsRequired($data['required']);
 
         $em->flush();
         return $this->json(['status' => 'success']);
@@ -170,11 +213,53 @@ class CallController extends AbstractController
 
     #[Route('/qualif-fields/{id}', name: 'fields_delete', methods: ['DELETE'])]
     #[IsGranted('ROLE_RESPONSABLE')]
-    public function deleteQualifField(QualificationField $field, EntityManagerInterface $em): JsonResponse
+    public function deleteQualifField(CampaignField $field, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($field);
         $em->flush();
         return $this->json(['status' => 'success']);
+    }
+
+    #[Route('/calls/recent', name: 'recent', methods: ['GET'])]
+    public function listMyRecentCalls(CallRepository $repo): JsonResponse
+    {
+        $user = $this->getUser();
+        $calls = $repo->findBy(['agent' => $user], ['startTime' => 'DESC'], 30);
+
+        $data = array_map(fn($c) => [
+            'id' => $c->getId(),
+            'contact' => $c->getContact()->getNom(),
+            'campaign' => $c->getCampaign()->getNom(),
+            'start' => $c->getStartTime()->format('d/m H:i'),
+            'duration' => $c->getDuration(),
+            'status' => $c->getCallQualification()?->getStatus() ?? $c->getStatus()
+        ], $calls);
+
+        return $this->json($data);
+    }
+
+    #[Route('/calls/{id}/details', name: 'details', methods: ['GET'])]
+    public function getCallDetails(Call $call): JsonResponse
+    {
+        $values = [];
+        foreach ($call->getQualificationValues() as $val) {
+            $values[] = [
+                'label' => $val->getField()->getLabel(),
+                'value' => $val->getValue()
+            ];
+        }
+
+        return $this->json([
+            'id' => $call->getId(),
+            'contact' => $call->getContact()->getNom(),
+            'phone' => $call->getContact()->getTelephone(),
+            'campaign' => $call->getCampaign()->getNom(),
+            'start' => $call->getStartTime()->format('Y-m-d H:i:s'),
+            'duration' => $call->getDuration(),
+            'status' => $call->getCallQualification()?->getStatus() ?? $call->getStatus(),
+            'qualified_at' => $call->getCallQualification()?->getQualifiedAt()?->format('Y-m-d H:i:s'),
+            'custom_fields' => $values
+        ]);
     }
 
     // --- REPORTING / LISTES ---

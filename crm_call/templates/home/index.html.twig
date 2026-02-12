@@ -104,19 +104,27 @@
 			</div>
 
 			<nav class="sidebar-nav">
-				<a href="#" class="nav-item active" onclick="App.switchView('dashboard')">
+				<a href="#" class="nav-item active" data-target="dashboard">
 					<span class="icon">📊</span>
 					<span class="sidebar-label">Tableau de bord</span>
 				</a>
-				<a href="#" class="nav-item" onclick="App.switchView('campaigns')">
+				<a href="#" class="nav-item" data-target="campaigns">
 					<span class="icon">🎯</span>
 					<span class="sidebar-label">Campagnes</span>
 				</a>
-				<a href="#" class="nav-item" onclick="App.switchView('contacts')">
+				<a href="#" class="nav-item" data-target="contacts">
 					<span class="icon">👥</span>
 					<span class="sidebar-label">Répertoire Contacts</span>
 				</a>
-				<a href="#" class="nav-item" onclick="App.switchView('users')">
+				<a href="#" class="nav-item" data-target="calls">
+					<span class="icon">📞</span>
+					<span class="sidebar-label">Passer des Appels</span>
+				</a>
+				<a href="#" class="nav-item" data-target="history">
+					<span class="icon">🕒</span>
+					<span class="sidebar-label">Historique Appels</span>
+				</a>
+				<a href="#" class="nav-item" data-target="users">
 					<span class="icon">🛡️</span>
 					<span class="sidebar-label">Équipe & Accès</span>
 				</a>
@@ -156,7 +164,7 @@
 			<div
 				id="view-container" class="view-content">
 				<!-- Vue Overview -->
-				<div id="overview-view" class="view">
+				<div id="dashboard-view" class="view">
 					<div class="stats-grid">
 						<div class="stat-card">
 							<label>Campagnes Actives</label>
@@ -191,7 +199,7 @@
 						</div>
 						<button onclick="UI.showCampaignModal()" class="btn-glow">
 							<svg fill="currentColor" viewbox="0 0 20 20">
-								<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-20v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+								<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
 							</svg>
 							Lancer une campagne
 						</button>
@@ -319,24 +327,136 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
 
-		<!-- Modal Generic -->
-		<div id="modal-container" class="modal-overlay hidden">
-			<div class="modal-card">
-				<div class="modal-header">
-					<h3 id="modal-title">Formulaire</h3>
-					<button onclick="UI.closeModal()" class="btn-close">×</button>
+				<!-- Vue Appels (Interface Agent) -->
+				<div id="calls-view" class="view hidden">
+					<div class="view-header-flex">
+						<div class="title-group">
+							<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Interface d'Appels</h2>
+							<p style="color: var(--text-dim); margin: 5px 0 0 0;">Gérez vos appels sortants et qualifiez vos prospects</p>
+						</div>
+						<div class="agent-status-toggle">
+							<select id="agent-current-status" class="modal-select" onchange="App.updateAgentStatus(this.value)" style="width: auto; padding-right: 2rem;">
+								<option value="DISPONIBLE">🟢 Disponible</option>
+								<option value="PAUSE">🟠 En pause</option>
+								<option value="OCCUPE">🔴 Occupé</option>
+							</select>
+						</div>
+					</div>
+
+					<div
+						class="dashboard-panels">
+						<!-- Sélecteur de Campagne -->
+						<div class="panel" style="flex: 1;">
+							<div class="panel-header">
+								<h3>1. Choisir une Campagne</h3>
+							</div>
+							<div
+								id="call-campaign-list" class="grid-cards"><!-- Rempli par JS -->
+							</div>
+						</div>
+
+						<!-- Sélecteur de Contact -->
+						<div class="panel" style="flex: 2;">
+							<div class="panel-header">
+								<h3>2. Sélectionner un Contact</h3>
+								<div id="selected-campaign-info" class="badge hidden">Campagne:
+									<span id="current-campaign-name">-</span>
+								</div>
+							</div>
+							<div class="table-container" style="max-height: 500px; overflow-y: auto;">
+								<table class="data-table">
+									<thead>
+										<tr>
+											<th>Nom</th>
+											<th>Téléphone</th>
+											<th>Statut</th>
+											<th>Action</th>
+										</tr>
+									</thead>
+									<tbody id="call-contact-list-body">
+										<tr>
+											<td colspan="4" style="text-align:center; padding:2rem; color:var(--text-dim);">Sélectionnez une campagne pour voir les contacts</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div id="modal-body" class="modal-content"></div>
-				<div class="modal-footer">
-					<button id="modal-save" class="btn-glow">Enregistrer</button>
+			</div>
+
+			<!-- Vue Historique -->
+			<div id="history-view" class="view hidden">
+				<div class="view-header-flex">
+					<div class="title-group">
+						<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Historique des Appels</h2>
+						<p style="color: var(--text-dim); margin: 5px 0 0 0;">Journal complet de vos activités téléphoniques</p>
+					</div>
+				</div>
+
+				<div class="panel">
+					<div class="table-container">
+						<table class="data-table">
+							<thead>
+								<tr>
+									<th>Contact</th>
+									<th>Campagne</th>
+									<th>Date & Heure</th>
+									<th>Durée</th>
+									<th>Statut</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody id="history-list-body"></tbody>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
-	</main>
-</div></div><style>
+	</div>
+
+</div>
+<!-- Overlay Appou Appel Sortant (Simulation) -->
+<div id="call-sim-overlay" class="modal-overlay hidden" style="z-index: 2000; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);">
+	<div class="call-sim-card animate-slide-up">
+		<div class="call-sim-avatar">
+			<div class="pulse-ring"></div>
+			<span id="call-avatar-initial">?</span>
+		</div>
+		<h2 id="call-sim-name" style="margin-top: 2rem;">Appel en cours...</h2>
+		<p id="call-sim-phone" style="color: var(--text-dim); font-size: 1.2rem;">+33 0 00 00 00 00</p>
+
+		<div class="call-timer" id="call-duration-display">00:00</div>
+
+		<div class="call-controls">
+			<button class="btn-call-action mute">
+				<span>🔇</span>
+			</button>
+			<button class="btn-call-action end" onclick="App.terminateCall()">
+				<span>📞</span>
+				<label>Raccrocher</label>
+			</button>
+			<button class="btn-call-action keypad">
+				<span>🔢</span>
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- Generic Modal Container (Re-used) -->
+<div id="modal-container" class="modal-overlay hidden">
+	<div class="modal-card">
+		<div class="modal-header">
+			<h3 id="modal-title">Formulaire</h3>
+			<button onclick="UI.closeModal()" class="btn-close">×</button>
+		</div>
+		<div id="modal-body" class="modal-content"></div>
+		<div class="modal-footer" id="modal-footer">
+			<button id="modal-save" class="btn-glow">Enregistrer</button>
+		</div>
+	</div>
+</div></main><style>
 .view-header-flex {
 	display: flex;
 	justify-content: space-between;
@@ -394,6 +514,140 @@
 .btn-action.delete:hover {
 	background: var(--danger);
 	color: white;
+}
+
+/* CALL SIMULATION STYLES */
+.call-sim-card {
+	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+	width: 400px;
+	padding: 3rem;
+	border-radius: 40px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.call-sim-avatar {
+	width: 100px;
+	height: 100px;
+	background: var(--primary-gradient);
+	border-radius: 50%;
+	margin: 0 auto;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 2.5rem;
+	font-weight: 800;
+	color: white;
+}
+
+.pulse-ring {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 2px solid var(--primary);
+	border-radius: 50%;
+	animation: ring-pulse 2s infinite;
+}
+
+@keyframes ring-pulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(1.8);
+		opacity: 0;
+	}
+}
+
+.call-timer {
+	font-size: 2rem;
+	font-family: 'JetBrains Mono', monospace;
+	margin: 2rem 0;
+	color: var(--primary);
+	letter-spacing: 2px;
+}
+
+.call-controls {
+	display: flex;
+	justify-content: center;
+	gap: 1.5rem;
+	margin-top: 2rem;
+}
+
+.btn-call-action {
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	border: none;
+	background: rgba(255, 255, 255, 0.05);
+	color: white;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-call-action span {
+	font-size: 1.5rem;
+}
+.btn-call-action label {
+	font-size: 0.7rem;
+	margin-top: 4px;
+	display: block;
+}
+
+.btn-call-action:hover {
+	transform: translateY(-5px);
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-call-action.end {
+	background: var(--danger);
+	width: 70px;
+	height: 70px;
+	box-shadow: 0 0 20px rgba(231, 76, 60, 0.3);
+}
+
+.btn-call-action.end span {
+	transform: rotate(135deg);
+}
+
+.grid-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.campaign-mini-card {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	padding: 1.5rem;
+	border-radius: 16px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-align: center;
+}
+
+.campaign-mini-card:hover {
+	border-color: var(--primary);
+	background: rgba(99, 102, 241, 0.05);
+	transform: translateY(-3px);
+}
+
+.campaign-mini-card.selected {
+	border-color: var(--primary);
+	background: var(--primary-gradient);
+	color: white;
+}
+
+.campaign-mini-card.selected p {
+	color: rgba(255, 255, 255, 0.8);
 }
 
 /* MODAL PREMIUM REDESIGN */
@@ -1142,977 +1396,1407 @@ body {
 		opacity: 1;
 		transform: translateY(0);
 	}
+}
+/* DRAWER HISTORIQUE */
+.drawer {
+	position: fixed;
+	top: 0;
+	right: -450px;
+	width: 450px;
+	height: 100vh;
+	background: var(--bg-side);
+	border-left: 1px solid var(--border);
+	transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+	z-index: 2500;
+	padding: 2.5rem;
+	box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+	overflow-y: auto;
+	backdrop-filter: blur(20px);
+}
+.drawer.open {
+	right: 0;
+}
+.drawer-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(8px);
+	z-index: 2400;
+	opacity: 0;
+	visibility: hidden;
+	transition: 0.3s;
+}
+.drawer-overlay.active {
+	opacity: 1;
+	visibility: visible;
+}
+.drawer-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2.5rem;
+}
+.history-card {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	border-radius: 18px;
+	padding: 1.25rem;
+	margin-bottom: 1rem;
+	transition: 0.3s;
+	animation: slideInRight 0.4s ease-out both;
+}
+.history-card:hover {
+	border-color: var(--primary);
+	transform: translateX(-8px);
+	background: var(--bg-app);
+}
+.h-card-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 0.5rem;
+}
+.h-card-meta {
+	font-size: 0.85rem;
+	color: var(--text-dim);
+	margin: 0;
+}
+.btn-link {
+	background: none;
+	border: none;
+	color: var(--primary);
+	font-weight: 700;
+	cursor: pointer;
+	font-family: 'Outfit';
+	margin-top: 1rem;
+	padding: 0;
+	font-size: 0.9rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.btn-link:hover {
+	text-decoration: underline;
+	gap: 10px;
+}
+.details-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1.25rem;
+	margin-bottom: 2rem;
+}
+.detail-item label {
+	display: block;
+	font-size: 0.75rem;
+	color: var(--text-dim);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-bottom: 4px;
+}
+.detail-item span {
+	font-weight: 700;
+	font-size: 1rem;
+}
+.field-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--border);
+}
+.field-row label {
+	font-weight: 600;
+	color: var(--text-dim);
 }</style><script>window.App = {
-							        token: localStorage.getItem('zanova_token'),
-							        theme: localStorage.getItem('zanova_theme') || 'dark',
-							        isSidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
-							        userData: null,
-							        currentCampaignId: null,
-							
-							        init() {
-							            this.applyTheme();
-							            this.applySidebarState();
-							            this.bindEvents();
-							            if (this.token) this.bootApp();
-							        },
-							
-							        bindEvents() {
-							            document.getElementById('btn-login').addEventListener('click', () => this.login());
-							            document.getElementById('btn-logout').addEventListener('click', () => this.logout());
-							            document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
-							            document.getElementById('mobile-menu-toggle').addEventListener('click', () => this.toggleMobileSidebar());
-							
-							            // Navigation
-							            document.querySelectorAll('.nav-item').forEach(item => {
-							                item.addEventListener('click', (e) => {
-							                    e.preventDefault();
-							                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-							                    item.classList.add('active');
-							                    this.switchView(item.dataset.target);
-							                    // Fermer le menu mobile après clic
-							                    document.getElementById('sidebar').classList.remove('mobile-open');
-							                });
-							            });
-							        },
-							
-							        toggleTheme() {
-							            this.theme = this.theme === 'dark' ? 'light' : 'dark';
-							            localStorage.setItem('zanova_theme', this.theme);
-							            this.applyTheme();
-							        },
-							
-							        toggleAuthMode(mode) {
-							            if (mode === 'register') {
-							                document.getElementById('login-form').classList.add('hidden');
-							                document.getElementById('register-form').classList.remove('hidden');
-							            } else {
-							                document.getElementById('register-form').classList.add('hidden');
-							                document.getElementById('login-form').classList.remove('hidden');
-							            }
-							        },
-							
-							        applyTheme() {
-							            document.documentElement.setAttribute('data-theme', this.theme);
-							        },
-							
-							        toggleSidebar() {
-							            this.isSidebarCollapsed = !this.isSidebarCollapsed;
-							            localStorage.setItem('sidebar_collapsed', this.isSidebarCollapsed);
-							            this.applySidebarState();
-							        },
-							
-							        applySidebarState() {
-							            const sb = document.getElementById('sidebar');
-							            if (this.isSidebarCollapsed) sb.classList.add('collapsed');
-							            else sb.classList.remove('collapsed');
-							        },
-							
-							        toggleMobileSidebar() {
-							            document.getElementById('sidebar').classList.toggle('mobile-open');
-							        },
-							
-							        async login() {
-							            const email = document.getElementById('email').value;
-							            const password = document.getElementById('password').value;
-							            this.showLoader(true);
-							            try {
-							                const response = await fetch('/api/login_check', {
-							                    method: 'POST',
-							                    headers: { 'Content-Type': 'application/json' },
-							                    body: JSON.stringify({ email, password })
-							                });
-							                const data = await response.json();
-							                if (response.ok) {
-							                    this.token = data.token;
-							                    localStorage.setItem('zanova_token', this.token);
-							                    await this.bootApp();
-							                } else throw new Error(data.message || "Identifiants invalides");
-							            } catch (err) {
-							                const errBox = document.getElementById('auth-error');
-							                errBox.innerText = err.message;
-							                errBox.classList.remove('hidden');
-							            } finally {
-							                this.showLoader(false);
-							            }
-							        },
-							
-							        async register() {
-							            const payload = {
-							                prenom: document.getElementById('reg-prenom').value,
-							                nom: document.getElementById('reg-nom').value,
-							                email: document.getElementById('reg-email').value,
-							                password: document.getElementById('reg-password').value,
-				                            role: document.getElementById('reg-role').value
-							            };
-							
-							            if (!payload.email || !payload.password || !payload.nom || !payload.prenom) {
-							                alert("Veuillez remplir tous les champs");
-							                return;
-							            }
-							
-							            this.showLoader(true);
-							            try {
-							                const res = await fetch('/api/register', {
-							                    method: 'POST',
-							                    headers: { 'Content-Type': 'application/json' },
-							                    body: JSON.stringify(payload)
-							                });
-							                const data = await res.json();
-							                if (res.ok) {
-							                    document.getElementById('auth-success').innerText = data.message;
-							                    document.getElementById('auth-success').classList.remove('hidden');
-							                    this.toggleAuthMode('login');
-							                } else {
-							                    throw new Error(data.error);
-							                }
-							            } catch (err) {
-							                const errBox = document.getElementById('reg-error');
-							                errBox.innerText = err.message;
-							                errBox.classList.remove('hidden');
-							            } finally { this.showLoader(false); }
-							        },
-							
-							        async bootApp() {
-							            this.showLoader(true);
-							            try {
-							                const response = await fetch('/api/profile', {
-							                    headers: { 'Authorization': `Bearer ${this.token}` }
-							                });
-							                if (!response.ok) throw new Error("Expulsion");
-							                const result = await response.json();
-							                this.userData = result.data;
-							                this.renderUI();
-							                document.getElementById('auth-screen').classList.add('hidden');
-							                document.getElementById('main-dashboard').classList.remove('hidden');
-							            } catch (err) { this.logout(); } finally { this.showLoader(false); }
-							        },
-							
-							        renderUI() {
-							            document.getElementById('user-name').innerText = `${this.userData.prenom} ${this.userData.nom}`;
-							            document.getElementById('user-role').innerText = this.userData.role_crm;
-							            if (this.userData.roles.includes('ROLE_RESPONSABLE')) {
-							                document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.remove('hidden'));
-							            }
-							        },
-							
-							        switchView(target) {
-							            document.getElementById('page-title').innerText = target.charAt(0).toUpperCase() + target.slice(1);
-							            
-							            // Masquer toutes les vues
-							            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-							            const activeView = document.getElementById(target + '-view');
-							            if (activeView) activeView.classList.remove('hidden');
-							
-							            if (target === 'campaigns') this.loadCampaigns();
-							            if (target === 'users') this.loadUsers();
-							            if (target === 'contacts') this.loadGlobalContacts();
-							        },
-							
-							        async loadGlobalContacts() {
-							            this.showLoader(true);
-							            try {
-							                const res = await fetch('/api/management/campaigns', {
-							                    headers: { 'Authorization': `Bearer ${this.token}` }
-							                });
-							                const campaigns = await res.json();
-							                const container = document.getElementById('contact-campaign-selector');
-							                container.innerHTML = campaigns.map(c => `
-							                    <div onclick="App.loadCampaignContacts(${c.id})" class="activity-item" style="cursor:pointer; transition:0.2s;" id="campaign-item-${c.id}">
-							                        <strong>${c.nom}</strong>
-							                    </div>
-							                `).join('');
-							                document.getElementById('btn-add-contact').classList.add('hidden');
-							                document.getElementById('contact-list-body').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-dim);">Veuillez sélectionner une campagne à droite.</td></tr>';
-							            } catch (err) { console.error(err); }
-							            finally { this.showLoader(false); }
-							        },
-							
-							        async loadCampaignContacts(campaignId) {
-							            this.currentCampaignId = campaignId;
-							            this.showLoader(true);
-							            
-							            // Highlight active campaign
-							            document.querySelectorAll('#contact-campaign-selector .activity-item').forEach(el => el.style.borderColor = 'transparent');
-							            const activeItem = document.getElementById(`campaign-item-${campaignId}`);
-							            if(activeItem) activeItem.style.borderColor = 'var(--primary)';
-							
-							            try {
-							                const res = await fetch(`/api/management/campaigns/${campaignId}/contacts`, {
-							                    headers: { 'Authorization': `Bearer ${this.token}` }
-							                });
-							                const contacts = await res.json();
-							                const tbody = document.getElementById('contact-list-body');
-							                
-							                document.getElementById('btn-add-contact').classList.remove('hidden');
-							
-							                tbody.innerHTML = contacts.length ? contacts.map(c => `
-							                    <tr>
-							                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
-							                        <td>${c.telephone}<br><small>${c.email || '-'}</small></td>
-							                        <td><span class="badge badge-neutral">${c.source}</span></td>
-							                        <td><span class="badge ${c.status === 'nouveau' ? 'badge-primary' : (c.status === 'termine' ? 'badge-success' : 'badge-neutral')}">${c.status}</span></td>
-							                        <td>
-							                            <div class="action-btns">
-							                                <button onclick="UI.editContact(${c.id})" class="btn-action">✏️</button>
-							                                <button onclick="UI.deleteContact(${c.id})" class="btn-action delete">🗑️</button>
-							                            </div>
-							                        </td>
-							                    </tr>
-							                `).join('') : '<tr><td colspan="5" style="text-align:center; padding:2rem;">Aucun contact dans cette campagne.</td></tr>';
-							            } catch (err) { alert(err.message); }
-							            finally { this.showLoader(false); }
-							        },
-							
-							        async loadCampaigns() {
-							            console.log("--- Début rechargement campagnes ---");
-							            this.showLoader(true);
-							            try {
-							                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
-							                    method: 'GET',
-							                    cache: 'no-store', // Désactive le cache navigateur
-							                    headers: { 
-							                        'Authorization': `Bearer ${this.token}`,
-							                        'Accept': 'application/json'
-							                    }
-							                });
-							                const data = await res.json();
-							                console.log("Données reçues après reload:", data);
-							                
-							                if (!Array.isArray(data)) {
-							                    console.error("Data received is not an array:", data);
-							                    throw new Error(data.message || "Réponse invalide du serveur");
-							                }
-							
-							                const tbody = document.getElementById('campaign-list-body');
-							                tbody.innerHTML = data.length ? data.map(c => `
-							                    <tr>
-							                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
-							                        <td>${c.date_debut || '-'} / ${c.date_fin || '-'}</td>
-							                        <td>${c.responsable || 'Non assigné'}</td>
-							                        <td><span class='badge'>${c.contacts_count}</span></td>
-							                        <td>
-							                            <div class="action-btns">
-							                                <button onclick="UI.manageAssignments(${c.id})" class="btn-action" title="Affectations">🤝</button>
-							                                <button onclick="UI.manageFields(${c.id})" class="btn-action" title="Formulaire">📋</button>
-							                                <button onclick="UI.editCampaign(${c.id})" class="btn-action">✏️</button>
-							                                <button onclick="UI.deleteCampaign(${c.id})" class="btn-action delete">🗑️</button>
-							                            </div>
-							                        </td>
-							                    </tr>
-							                `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Aucune campagne trouvée</td></tr>';
-							            } catch (err) { 
-							                console.error("LoadCampaigns Error:", err);
-							                alert("Erreur: " + err.message);
-							            }
-							            finally { this.showLoader(false); }
-							        },
-							
-							        async loadUsers() {
-							            this.showLoader(true);
-							            try {
-							                const res = await fetch('/api/management/users?t=' + Date.now(), {
-							                    method: 'GET',
-							                    cache: 'no-store',
-							                    headers: { 
-							                        'Authorization': `Bearer ${this.token}`,
-							                        'Accept': 'application/json'
-							                    }
-							                });
-							                const data = await res.json();
-							                
-							                if (!Array.isArray(data)) {
-							                    throw new Error(data.message || "Réponse invalide du serveur");
-							                }
-							
-							                const tbodyActive = document.getElementById('user-list-body');
-							                const tbodyPending = document.getElementById('pending-user-list-body');
-							                
-							                const activeUsers = data.filter(u => u.status === 'active');
-							                const pendingUsers = data.filter(u => u.status === 'inactive');
-							
-							                tbodyActive.innerHTML = activeUsers.map(u => {
-							                    const roleClass = u.role === 'responsable' ? 'badge-admin' : (u.role === 'superviseur' ? 'badge-primary' : 'badge-neutral');
-							                    return `
-							                        <tr>
-							                            <td><div style="display:flex; align-items:center; gap:12px;">
-							                                <div class="user-avatar" style="width:32px; height:32px; font-size:0.8rem;">${u.prenom[0]}</div>
-							                                <strong>${u.prenom} ${u.nom}</strong>
-							                            </div></td>
-							                            <td><span style="color:var(--text-dim); font-size:0.9rem;">${u.email}</span></td>
-							                            <td><span class="badge ${roleClass}">${u.role}</span></td>
-							                            <td><span class="badge badge-success">Actif</span></td>
-							                            <td>
-							                                <div class="action-btns">
-							                                    <button onclick="UI.editUser(${u.id})" class="btn-action">✏️</button>
-							                                    <button onclick="UI.deleteUser(${u.id})" class="btn-action delete">🗑️</button>
-							                                </div>
-							                            </td>
-							                        </tr>
-							                    `;
-							                }).join('');
-							
-							                if (tbodyPending) {
-							                    tbodyPending.innerHTML = pendingUsers.length ? pendingUsers.map(u => `
-							                        <tr>
-							                            <td><strong>${u.prenom} ${u.nom}</strong></td>
-							                            <td><span style="color:var(--text-dim); font-size:0.9rem;">${u.email}</span></td>
-							                            <td><span class="badge badge-neutral">${u.role}</span></td>
-							                            <td>
-							                                <button onclick="UI.validateUser(${u.id})" class="btn-glow small" style="background:var(--success); border-radius:8px; padding:0.5rem 1rem;">
-							                                    ✅ Valider l'accès
-							                                </button>
-							                            </td>
-							                        </tr>
-							                    `) : '<tr><td colspan="4" style="text-align:center; padding:1rem; opacity:0.5;">Aucune inscription en attente</td></tr>';
-							                }
-							
-							            } catch (err) { 
-							                console.error("LoadUsers Error:", err);
-							                alert("Erreur: " + err.message);
-							            }
-							            finally { this.showLoader(false); }
-							        },
-							
-							        showLoader(show) { document.getElementById('global-loader').classList.toggle('hidden', !show); },
-							
-							        addActivity(msg) {
-							            const container = document.getElementById('activity-log');
-							            if (!container) return;
-							            
-							            const empty = container.querySelector('.empty');
-							            if (empty) empty.remove();
-							
-							            const item = document.createElement('div');
-							            item.className = 'activity-item';
-							            const now = new Date();
-							            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-							            
-							            item.innerHTML = `<span class="time">${timeStr}</span> <p class="msg">${msg}</p>`;
-							            container.prepend(item);
-							        },
-							
-							        logout() {
-							            localStorage.removeItem('zanova_token');
-							            location.reload();
-							        }
-							    };
-							
-							    window.UI = {
-							        async deleteCampaign(id) {
-							            if(!confirm("⚠️ Êtes-vous sûr de vouloir supprimer cette campagne ? Cette action est irréversible.")) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/campaigns/${id}`, {
-							                    method: 'DELETE',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if(res.ok) {
-							                    App.addActivity("Campagne supprimée");
-							                    App.loadCampaigns();
-							                } else {
-							                    throw new Error("Erreur lors de la suppression");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async editCampaign(id) {
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const campaigns = await res.json();
-							                const camp = campaigns.find(c => c.id === parseInt(id));
-							
-							                if (!camp) throw new Error("Campagne introuvable.");
-							                this.showCampaignModal(camp);
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        showCampaignModal(existingData = null) {
-							            const container = document.getElementById('modal-container');
-							            const title = document.getElementById('modal-title');
-							            const body = document.getElementById('modal-body');
-							            const saveBtn = document.getElementById('modal-save');
-							
-							            title.innerText = existingData ? "Modifier la Campagne" : "Créer une nouvelle Campagne";
-							            body.innerHTML = `
-							                <div class="animate-fade-in">
-							                    <input type="hidden" id="m-camp-id" value="${existingData ? existingData.id : ''}">
-							                    
-							                    <div class="input-group">
-							                        <label>Titre de la campagne</label>
-							                        <input type="text" id="m-camp-nom" value="${existingData ? existingData.nom : ''}" placeholder="Ex: Campagne Acquisition Mars 2024">
-							                    </div>
-							
-							                    <div class="input-group">
-							                        <label>Objectifs & Description</label>
-							                        <textarea id="m-camp-desc" placeholder="Décrivez ici les spécificités de cette campagne...">${existingData ? (existingData.description || '') : ''}</textarea>
-							                    </div>
-							
-							                    <div class="modal-grid">
-							                        <div class="input-group">
-							                            <label>Date de Lancement</label>
-							                            <input type="date" id="m-camp-start" value="${existingData ? (existingData.date_debut || '') : ''}">
-							                        </div>
-							                        <div class="input-group">
-							                            <label>Échéance (Fin)</label>
-							                            <input type="date" id="m-camp-end" value="${existingData ? (existingData.date_fin || '') : ''}">
-							                        </div>
-							                    </div>
-							                </div>
-							            `;
-							            
-							            saveBtn.className = "btn-modal-save";
-							            saveBtn.innerText = existingData ? "Confirmer les modifications" : "Lancer la campagne";
-							            saveBtn.onclick = () => this.saveCampaign(existingData ? 'PUT' : 'POST');
-							            container.classList.remove('hidden');
-							        },
-							
-							        async saveCampaign(method) {
-							            const id = document.getElementById('m-camp-id').value;
-							            const payload = {
-							                nom: document.getElementById('m-camp-nom').value,
-							                description: document.getElementById('m-camp-desc').value,
-							                date_debut: document.getElementById('m-camp-start').value,
-							                date_fin: document.getElementById('m-camp-end').value
-							            };
-							
-							            if (!payload.nom) {
-							                alert("⚠️ Le titre de la campagne est obligatoire.");
-							                return;
-							            }
-							
-							            const url = method === 'PUT' ? `/api/management/campaigns/${id}` : '/api/management/campaigns';
-							
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(url + '?t=' + Date.now(), {
-							                    method: method,
-							                    headers: { 
-							                        'Content-Type': 'application/json', 
-							                        'Authorization': `Bearer ${App.token}`,
-							                        'Accept': 'application/json'
-							                    },
-							                    body: JSON.stringify(payload)
-							                });
-							                
-							                const responseData = await res.json();
-							
-							                if (res.ok) {
-							                    this.closeModal();
-							                    App.addActivity(method === 'PUT' ? `Succès: Campagne "${payload.nom}" mise à jour` : `Succès: Campagne "${payload.nom}" créée`);
-							                    
-							                    // On attend un tout petit peu pour laisser le temps au flush DB de se propager
-							                    setTimeout(async () => {
-							                        await App.loadCampaigns();
-							                        console.log("Liste rafraîchie avec succès");
-							                    }, 300);
-							
-							                    // Message de succès temporaire
-							                    const successMsg = document.createElement('div');
-							                    successMsg.className = "alert-box success";
-							                    successMsg.style.position = "fixed"; successMsg.style.top = "20px"; successMsg.style.right = "20px";
-							                    successMsg.innerText = "Données enregistrées avec succès !";
-							                    document.body.appendChild(successMsg);
-							                    setTimeout(() => successMsg.remove(), 3000);
-							                } else {
-							                    throw new Error(responseData.error || `Erreur serveur (Code: ${res.status})`);
-							                }
-							            } catch (err) { 
-							                console.error("Save Error:", err);
-							                alert("Détails de l'erreur: " + err.message); 
-							            }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        closeModal() {
-							            document.getElementById('modal-container').classList.add('hidden');
-							        },
-							
-							        // --- GESTION ÉQUIPE (USERS) ---
-							        showUserModal(existingData = null) {
-							            const container = document.getElementById('modal-container');
-							            const title = document.getElementById('modal-title');
-							            const body = document.getElementById('modal-body');
-							            const saveBtn = document.getElementById('modal-save');
-							
-							            title.innerText = existingData ? "Modifier le Membre" : "Ajouter un Membre";
-							            body.innerHTML = `
-							                <div class="animate-fade-in">
-							                    <input type="hidden" id="m-user-id" value="${existingData ? existingData.id : ''}">
-							                    <div class="modal-grid">
-							                        <div class="input-group">
-							                            <label>Prénom</label>
-							                            <input type="text" id="m-user-prenom" value="${existingData ? existingData.prenom : ''}" placeholder="Jean">
-							                        </div>
-							                        <div class="input-group">
-							                            <label>Nom</label>
-							                            <input type="text" id="m-user-nom" value="${existingData ? existingData.nom : ''}" placeholder="Dupont">
-							                        </div>
-							                    </div>
-							                    <div class="input-group">
-							                        <label>Email professionnel</label>
-							                        <input type="email" id="m-user-email" value="${existingData ? existingData.email : ''}" placeholder="jean.dupont@zanova.com">
-							                    </div>
-							                    <div class="modal-grid">
-							                        <div class="input-group">
-							                            <label>Rôle Système</label>
-							                            <select id="m-user-role" class="modal-select">
-							                                <option value="agent" ${existingData && existingData.role === 'agent' ? 'selected' : ''}>Agent (Appelant)</option>
-							                                <option value="superviseur" ${existingData && existingData.role === 'superviseur' ? 'selected' : ''}>Superviseur</option>
-							                                <option value="responsable" ${existingData && existingData.role === 'responsable' ? 'selected' : ''}>Responsable (Admin)</option>
-							                            </select>
-							                        </div>
-							                        <div class="input-group">
-							                            <label>Statut</label>
-							                            <select id="m-user-status" class="modal-select">
-							                                <option value="active" ${existingData && existingData.status === 'active' ? 'selected' : ''}>Actif</option>
-							                                <option value="inactive" ${existingData && existingData.status === 'inactive' ? 'selected' : ''}>Inactif</option>
-							                            </select>
-							                        </div>
-							                    </div>
-							                </div>
-							            `;
-							            
-							            saveBtn.className = "btn-modal-save";
-							            saveBtn.innerText = existingData ? "Enregistrer les modifications" : "Créer le profil";
-							            saveBtn.onclick = () => this.saveUser(existingData ? 'PUT' : 'POST');
-							            container.classList.remove('hidden');
-							        },
-							
-							        async saveUser(method) {
-							            const id = document.getElementById('m-user-id').value;
-							            const payload = {
-							                prenom: document.getElementById('m-user-prenom').value,
-							                nom: document.getElementById('m-user-nom').value,
-							                email: document.getElementById('m-user-email').value,
-							                role: document.getElementById('m-user-role').value,
-							                status: document.getElementById('m-user-status').value
-							            };
-							
-							            const url = method === 'PUT' ? `/api/management/users/${id}` : '/api/management/users';
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(url + '?t=' + Date.now(), {
-							                    method: method,
-							                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
-							                    body: JSON.stringify(payload)
-							                });
-							                if (res.ok) {
-							                    this.closeModal();
-							                    App.addActivity(`Membre ${payload.prenom} mis à jour`);
-							                    await App.loadUsers();
-							                } else {
-							                    const data = await res.json();
-							                    throw new Error(data.error || "Erreur lors de la sauvegarde utilisateur");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async editUser(id) {
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch('/api/management/users?t=' + Date.now(), {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const users = await res.json();
-							                const user = users.find(u => u.id === parseInt(id));
-							                if (user) this.showUserModal(user);
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async manageFields(campaignId) {
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/campaigns/${campaignId}/fields?t=` + Date.now(), {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const fields = await res.json();
-							                
-							                const container = document.getElementById('modal-container');
-							                const title = document.getElementById('modal-title');
-							                const body = document.getElementById('modal-body');
-							                const saveBtn = document.getElementById('modal-save');
-							
-							                title.innerText = "Champs du Formulaire";
-							                body.innerHTML = `
-							                    <div class="animate-fade-in" style="min-width: 500px">
-							                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Définissez les questions que l'agent devra remplir lors de l'appel.</p>
-							                        <div id="fields-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
-							                            ${fields.map(f => `
-							                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
-							                                    <div>
-							                                        <strong>${f.label}</strong> 
-							                                        <span class="badge badge-neutral" style="margin-left:10px">${f.type}</span>
-							                                    </div>
-							                                    <button onclick="UI.deleteField(${f.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
-							                                </div>
-							                            `).join('') || '<p style="text-align:center; padding:1rem; opacity:0.5;">Aucun champ configuré</p>'}
-							                        </div>
-							                        
-							                        <div class="panel" style="background:var(--bg-app); padding:1rem;">
-							                            <h4 style="margin:0 0 1rem 0; font-family:'Outfit'; font-size:0.9rem;">AJOUTER UN CHAMP</h4>
-							                            <div class="modal-grid" style="gap:1rem;">
-							                                <div class="input-group">
-							                                    <label>Nom du champ</label>
-							                                    <input type="text" id="new-field-label" placeholder="ex: Budget Client">
-							                                </div>
-							                                <div class="input-group">
-							                                    <label>Type</label>
-							                                    <select id="new-field-type" class="modal-select" style="padding:0.75rem 1rem;">
-							                                        <option value="text">Texte</option>
-							                                        <option value="number">Nombre</option>
-							                                        <option value="date">Date</option>
-							                                        <option value="textarea">Commentaire Long</option>
-							                                    </select>
-							                                </div>
-							                            </div>
-							                            <button onclick="UI.addField(${campaignId})" class="btn-glow" style="width:100%; margin-top:1rem; justify-content:center;">
-							                                + Ajouter à la campagne
-							                            </button>
-							                        </div>
-							                    </div>
-							                `;
-							                
-							                saveBtn.innerText = "Fermer";
-							                saveBtn.onclick = () => this.closeModal();
-							                container.classList.remove('hidden');
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async addField(campaignId) {
-							            const label = document.getElementById('new-field-label').value;
-							            const type = document.getElementById('new-field-type').value;
-							            if(!label) return alert("Le nom est requis");
-							
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/campaigns/${campaignId}/fields`, {
-							                    method: 'POST',
-							                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
-							                    body: JSON.stringify({ label, type, required: false })
-							                });
-							                if(res.ok) {
-							                    App.addActivity("Nouveau champ ajouté");
-							                    this.manageFields(campaignId);
-							                }
-							            } catch (err) { alert("Erreur: " + err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async deleteField(fieldId, campaignId) {
-							            if(!confirm("Supprimer ce champ ?")) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/fields/${fieldId}`, {
-							                    method: 'DELETE',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if(res.ok) {
-							                    App.addActivity("Champ supprimé");
-							                    this.manageFields(campaignId);
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async manageAssignments(campaignId) {
-							            App.showLoader(true);
-							            try {
-							                const resAss = await fetch(`/api/management/campaigns/${campaignId}/users?t=` + Date.now(), {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const assignments = await resAss.json();
-							
-							                const resAll = await fetch('/api/management/users?t=' + Date.now(), {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const allUsers = await resAll.json();
-							
-							                const container = document.getElementById('modal-container');
-							                const title = document.getElementById('modal-title');
-							                const body = document.getElementById('modal-body');
-							                const saveBtn = document.getElementById('modal-save');
-							
-							                title.innerText = "Affectations de l'Équipe";
-							                body.innerHTML = `
-							                    <div class="animate-fade-in" style="min-width: 500px">
-							                        <div id="assignment-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
-							                            <label style="font-size:0.75rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">MEMBRES ACTIFS</label>
-							                            ${assignments.map(a => `
-							                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
-							                                    <div>
-							                                        <strong>${a.nom}</strong> 
-							                                        <span class="badge ${a.role === 'responsable' ? 'badge-admin' : 'badge-primary'}" style="margin-left:10px">${a.role}</span>
-							                                    </div>
-							                                    <button onclick="UI.unassignUser(${a.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
-							                                </div>
-							                            `).join('') || '<p style="text-align:center; padding:1.5rem; background:var(--glass); border-radius:12px; opacity:0.5;">Aucun personnel affecté</p>'}
-							                        </div>
-							
-							                        <div class="panel" style="background:var(--bg-app); padding:1.5rem; border:1px solid var(--primary-glow);">
-							                            <label style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase; display:block; margin-bottom:1rem;">NOUVELLE AFFECTATION</label>
-							                            <div style="display:flex; gap:1rem;">
-							                                <select id="assign-user-select" class="modal-select" style="flex:1;">
-							                                    <option value="">Sélectionner un membre...</option>
-							                                    ${allUsers.filter(u => !assignments.find(a => a.user_id === u.id)).map(u => `
-							                                        <option value="${u.id}">${u.prenom} ${u.nom} (${u.role})</option>
-							                                    `).join('')}
-							                                </select>
-							                                <button onclick="UI.doAssign(${campaignId})" class="btn-glow">Affecter</button>
-							                            </div>
-							                        </div>
-							                    </div>
-							                `;
-							                
-							                saveBtn.innerText = "Terminer";
-							                saveBtn.onclick = () => this.closeModal();
-							                container.classList.remove('hidden');
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async doAssign(campaignId) {
-							            const userId = document.getElementById('assign-user-select').value;
-							            if(!userId) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/campaigns/${campaignId}/assign/${userId}`, {
-							                    method: 'POST',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if(res.ok) {
-							                    App.addActivity("Membre affecté");
-							                    this.manageAssignments(campaignId);
-							                } else {
-							                    const data = await res.json();
-							                    throw new Error(data.error);
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async unassignUser(assignmentId, campaignId) {
-							            if(!confirm("Retirer ce membre ?")) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/assignments/${assignmentId}`, {
-							                    method: 'DELETE',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if(res.ok) {
-							                    App.addActivity("Membre retiré");
-							                    this.manageAssignments(campaignId);
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async deleteUser(id) {
-							            if(!confirm("⚠️ Supprimer ce membre ?")) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/users/${id}?t=` + Date.now(), {
-							                    method: 'DELETE',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if (res.ok) {
-							                    App.addActivity("Membre supprimé");
-							                    await App.loadUsers();
-							                } else {
-							                    const data = await res.json();
-							                    throw new Error(data.error || "Action impossible");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async validateUser(id) {
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/users/${id}`, {
-							                    method: 'PUT',
-							                    headers: { 
-							                        'Content-Type': 'application/json',
-							                        'Authorization': `Bearer ${App.token}` 
-							                    },
-							                    body: JSON.stringify({ status: 'active' })
-							                });
-							                if (res.ok) {
-							                    App.addActivity("Nouvel utilisateur validé");
-							                    await App.loadUsers();
-							                } else {
-							                    throw new Error("Erreur lors de la validation");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        // --- GESTION CONTACTS ---
-							        async showContactModal(existingData = null) {
-							            const container = document.getElementById('modal-container');
-							            const title = document.getElementById('modal-title');
-							            const body = document.getElementById('modal-body');
-							            const saveBtn = document.getElementById('modal-save');
-							
-							            // On récupère les campagnes si on est en création "globale" (hors vue contact filtrée)
-							            let campaigns = [];
-							            if (!existingData && !App.currentCampaignId) {
-							                App.showLoader(true);
-							                try {
-							                    const res = await fetch('/api/management/campaigns', {
-							                        headers: { 'Authorization': `Bearer ${App.token}` }
-							                    });
-							                    campaigns = await res.json();
-							                } catch(e) { console.error(e); }
-							                finally { App.showLoader(false); }
-							            }
-							
-							            title.innerText = existingData ? "Modifier le Contact" : "Ajouter un Contact";
-							            
-							            let campaignSelector = '';
-							            if (!existingData && !App.currentCampaignId) {
-							                campaignSelector = `
-							                    <div class="input-group">
-							                        <label>Campagne de destination</label>
-							                        <select id="m-contact-campaign-id" class="modal-select">
-							                            <option value="">Sélectionner une campagne...</option>
-							                            ${campaigns.map(c => `<option value="${c.id}">${c.nom}</option>`).join('')}
-							                        </select>
-							                    </div>
-							                `;
-							            }
-							
-							            body.innerHTML = `
-							                <div class="animate-fade-in">
-							                    <input type="hidden" id="m-contact-id" value="${existingData ? existingData.id : ''}">
-							                    ${campaignSelector}
-							                    <div class="modal-grid">
-							                        <div class="input-group">
-							                            <label>Nom Complet</label>
-							                            <input type="text" id="m-contact-nom" value="${existingData ? existingData.nom : ''}" placeholder="M. Jean Durand">
-							                        </div>
-							                        <div class="input-group">
-							                            <label>Téléphone</label>
-							                            <input type="text" id="m-contact-tel" value="${existingData ? existingData.telephone : ''}" placeholder="06XXXXXXXX">
-							                        </div>
-							                    </div>
-							                    <div class="input-group">
-							                        <label>Email</label>
-							                        <input type="email" id="m-contact-email" value="${existingData ? (existingData.email || '') : ''}" placeholder="jean.durand@example.com">
-							                    </div>
-							                    <div class="modal-grid">
-							                        <div class="input-group">
-							                            <label>Source</label>
-							                            <input type="text" id="m-contact-source" value="${existingData ? (existingData.source || 'manuel') : 'manuel'}" placeholder="Ex: Site Web, LinkedIn">
-							                        </div>
-							                        <div class="input-group">
-							                            <label>Statut</label>
-							                            <select id="m-contact-status" class="modal-select">
-							                                <option value="nouveau" ${existingData && existingData.status === 'nouveau' ? 'selected' : ''}>Nouveau</option>
-							                                <option value="en_cours" ${existingData && existingData.status === 'en_cours' ? 'selected' : ''}>En cours</option>
-							                                <option value="termine" ${existingData && existingData.status === 'termine' ? 'selected' : ''}>Terminé</option>
-							                            </select>
-							                        </div>
-							                    </div>
-							                </div>
-							            `;
-							            
-							            saveBtn.className = "btn-modal-save";
-							            saveBtn.innerText = existingData ? "Enregistrer les modifications" : "Créer le contact";
-							            saveBtn.onclick = () => this.saveContact(existingData ? 'PUT' : 'POST');
-							            container.classList.remove('hidden');
-							        },
-							
-							        async saveContact(method) {
-							            const id = document.getElementById('m-contact-id').value;
-							            const campaignSelect = document.getElementById('m-contact-campaign-id');
-							            const targetCampaignId = campaignSelect ? campaignSelect.value : App.currentCampaignId;
-							
-							            const payload = {
-							                nom: document.getElementById('m-contact-nom').value,
-							                telephone: document.getElementById('m-contact-tel').value,
-							                email: document.getElementById('m-contact-email').value,
-							                source: document.getElementById('m-contact-source').value,
-							                status: document.getElementById('m-contact-status').value
-							            };
-							
-							            if (!payload.nom || !payload.telephone) {
-							                alert("⚠️ Le nom et le téléphone sont obligatoires.");
-							                return;
-							            }
-							
-							            if (method === 'POST' && !targetCampaignId) {
-							                alert("⚠️ Veuillez sélectionner une campagne.");
-							                return;
-							            }
-							
-							            const url = method === 'PUT' ? `/api/management/contacts/${id}` : `/api/management/campaigns/${targetCampaignId}/contacts`;
-							
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(url, {
-							                    method: method,
-							                    headers: { 
-							                        'Content-Type': 'application/json', 
-							                        'Authorization': `Bearer ${App.token}`
-							                    },
-							                    body: JSON.stringify(payload)
-							                });
-							                
-							                if (res.ok) {
-							                    this.closeModal();
-							                    App.addActivity(`Contact "${payload.nom}" enregistré`);
-							                    if (App.currentCampaignId) {
-							                        App.loadCampaignContacts(App.currentCampaignId);
-							                    } else {
-							                        App.switchView('contacts'); // Aller voir les contacts
-							                    }
-							                } else {
-							                    const data = await res.json();
-							                    throw new Error(data.error || "Erreur lors de la sauvegarde du contact");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async editContact(id) {
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/contacts/${id}`, {
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                const contact = await res.json();
-							                this.showContactModal(contact);
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        },
-							
-							        async deleteContact(id) {
-							            if(!confirm("⚠️ Supprimer ce contact ?")) return;
-							            App.showLoader(true);
-							            try {
-							                const res = await fetch(`/api/management/contacts/${id}`, {
-							                    method: 'DELETE',
-							                    headers: { 'Authorization': `Bearer ${App.token}` }
-							                });
-							                if (res.ok) {
-							                    App.addActivity("Contact supprimé");
-							                    App.loadCampaignContacts(App.currentCampaignId);
-							                } else {
-							                    throw new Error("Erreur lors de la suppression");
-							                }
-							            } catch (err) { alert(err.message); }
-							            finally { App.showLoader(false); }
-							        }
-							    };
-							
-							    App.init();
-							</script>
-							{% endblock %}
+																											        token: localStorage.getItem('zanova_token'),
+																											        theme: localStorage.getItem('zanova_theme') || 'dark',
+																											        isSidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+																											        userData: null,
+																											        currentCampaignId: null,
+																	                                                currentCampaignName: null,
+																	                                                currentCallId: null,
+																	                                                callTimer: null,
+																	                                                callStartTime: null,
+																											
+																											        init() {
+																											            this.applyTheme();
+																											            this.applySidebarState();
+																											            this.bindEvents();
+																											            if (this.token) this.bootApp();
+																											        },
+																											
+																											        bindEvents() {
+																											            document.getElementById('btn-login').addEventListener('click', () => this.login());
+																											            document.getElementById('btn-logout').addEventListener('click', () => this.logout());
+																											            document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
+																											            document.getElementById('mobile-menu-toggle').addEventListener('click', () => this.toggleMobileSidebar());
+																											
+																											            // Navigation
+																											            document.querySelectorAll('.nav-item').forEach(item => {
+																											                item.addEventListener('click', (e) => {
+																											                    e.preventDefault();
+																											                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+																											                    item.classList.add('active');
+																											                    this.switchView(item.dataset.target);
+																									                    // Fermer le menu mobile après clic
+																							                    document.getElementById('sidebar').classList.remove('mobile-open');
+																							                });
+																							            });
+																											        },
+																											
+																											        toggleTheme() {
+																											            this.theme = this.theme === 'dark' ? 'light' : 'dark';
+																											            localStorage.setItem('zanova_theme', this.theme);
+																											            this.applyTheme();
+																											        },
+																											
+																											        toggleAuthMode(mode) {
+																											            if (mode === 'register') {
+																											                document.getElementById('login-form').classList.add('hidden');
+																											                document.getElementById('register-form').classList.remove('hidden');
+																											            } else {
+																											                document.getElementById('register-form').classList.add('hidden');
+																											                document.getElementById('login-form').classList.remove('hidden');
+																											            }
+																											        },
+																											
+																											        applyTheme() {
+																											            document.documentElement.setAttribute('data-theme', this.theme);
+																											        },
+																											
+																											        toggleSidebar() {
+																											            this.isSidebarCollapsed = !this.isSidebarCollapsed;
+																											            localStorage.setItem('sidebar_collapsed', this.isSidebarCollapsed);
+																											            this.applySidebarState();
+																											        },
+																											
+																											        applySidebarState() {
+																											            const sb = document.getElementById('sidebar');
+																											            if (this.isSidebarCollapsed) sb.classList.add('collapsed');
+																											            else sb.classList.remove('collapsed');
+																											        },
+																											
+																											        toggleMobileSidebar() {
+																											            document.getElementById('sidebar').classList.toggle('mobile-open');
+																											        },
+																											
+																											        async login() {
+																											            const email = document.getElementById('email').value;
+																											            const password = document.getElementById('password').value;
+																											            this.showLoader(true);
+																											            try {
+																											                const response = await fetch('/api/login_check', {
+																											                    method: 'POST',
+																											                    headers: { 'Content-Type': 'application/json' },
+																											                    body: JSON.stringify({ email, password })
+																											                });
+																											                const data = await response.json();
+																											                if (response.ok) {
+																											                    this.token = data.token;
+																											                    localStorage.setItem('zanova_token', this.token);
+																											                    await this.bootApp();
+																											                } else throw new Error(data.message || "Identifiants invalides");
+																											            } catch (err) {
+																											                const errBox = document.getElementById('auth-error');
+																											                errBox.innerText = err.message;
+																											                errBox.classList.remove('hidden');
+																											            } finally {
+																											                this.showLoader(false);
+																											            }
+																											        },
+																											
+																											        async register() {
+																											            const payload = {
+																											                prenom: document.getElementById('reg-prenom').value,
+																											                nom: document.getElementById('reg-nom').value,
+																											                email: document.getElementById('reg-email').value,
+																											                password: document.getElementById('reg-password').value,
+																								                            role: document.getElementById('reg-role').value
+																											            };
+																											
+																											            if (!payload.email || !payload.password || !payload.nom || !payload.prenom) {
+																											                alert("Veuillez remplir tous les champs");
+																											                return;
+																											            }
+																											
+																											            this.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/register', {
+																											                    method: 'POST',
+																											                    headers: { 'Content-Type': 'application/json' },
+																											                    body: JSON.stringify(payload)
+																											                });
+																											                const data = await res.json();
+																											                if (res.ok) {
+																											                    document.getElementById('auth-success').innerText = data.message;
+																											                    document.getElementById('auth-success').classList.remove('hidden');
+																											                    this.toggleAuthMode('login');
+																											                } else {
+																											                    throw new Error(data.error);
+																											                }
+																											            } catch (err) {
+																											                const errBox = document.getElementById('reg-error');
+																											                errBox.innerText = err.message;
+																											                errBox.classList.remove('hidden');
+																											            } finally { this.showLoader(false); }
+																											        },
+																											
+																											        async bootApp() {
+																									            this.showLoader(true);
+																									            try {
+																									                const response = await fetch('/api/profile', {
+																									                    headers: { 'Authorization': `Bearer ${this.token}` }
+																									                });
+																									                if (!response.ok) throw new Error("Expulsion");
+																									                const result = await response.json();
+																									                this.userData = result.data;
+																									                this.renderUI();
+																									                document.getElementById('auth-screen').classList.add('hidden');
+																									                document.getElementById('main-dashboard').classList.remove('hidden');
+															                                                        this.loadDashboardStats();
+																									            } catch (err) { this.logout(); } finally { this.showLoader(false); }
+																									        },
+															
+															                                                async loadDashboardStats() {
+															                                                    try {
+															                                                        const res = await fetch('/api/management/campaigns', {
+															                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+															                                                        });
+															                                                        const camps = await res.json();
+															                                                        document.getElementById('stat-campaigns').innerText = camps.length;
+															                                                        
+															                                                        const resUsers = await fetch('/api/management/users', {
+															                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+															                                                        });
+															                                                        const users = await resUsers.json();
+															                                                        document.getElementById('stat-agents').innerText = users.filter(u => u.status === 'active').length;
+															                                                    } catch (err) { console.error(err); }
+															                                                },
+																											
+																											        renderUI() {
+																											            document.getElementById('user-name').innerText = `${this.userData.prenom} ${this.userData.nom}`;
+																											            document.getElementById('user-role').innerText = this.userData.role_crm;
+																											            if (this.userData.roles.includes('ROLE_RESPONSABLE')) {
+																											                document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.remove('hidden'));
+																											            }
+																											        },
+																											
+																											        switchView(target) {
+		            if (!target) {
+		                console.error('switchView called without target');
+		                return;
+		            }
+		            
+		            document.getElementById('page-title').innerText = target.charAt(0).toUpperCase() + target.slice(1);
+		            
+		            // Masquer toutes les vues
+		            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+		            const activeView = document.getElementById(target + '-view');
+		            if (activeView) activeView.classList.remove('hidden');
+		
+		            if (target === 'dashboard') this.loadDashboardStats();
+		            if (target === 'campaigns') this.loadCampaigns();
+		            if (target === 'users') this.loadUsers();
+		            if (target === 'contacts') this.loadGlobalContacts();
+		            if (target === 'calls') this.loadCallCampaigns();
+					if (target === 'history') this.loadRecentCalls();
+																						        },
+																
+																                                                async loadCallCampaigns() {
+																                                                    this.showLoader(true);
+																                                                    try {
+																                                                        const res = await fetch('/api/management/campaigns', {
+																                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+																                                                        });
+																                                                        const data = await res.json();
+																                                                        const container = document.getElementById('call-campaign-list');
+																                                                        container.innerHTML = data.map(c => `
+																                                                            <div class="campaign-mini-card ${this.currentCampaignId === c.id ? 'selected' : ''}" 
+																                                                                 onclick="App.loadCallContacts(${c.id}, '${c.nom.replace(/'/g, "\\'")}')">
+																                                                                <h4 style="margin:0">${c.nom}</h4>
+																                                                                <p style="margin:5px 0 0 0; font-size:0.8rem; opacity:0.7;">${c.contacts_count} contacts</p>
+																                                                            </div>
+																                                                        `).join('');
+																                                                    } catch (err) { console.error(err); }
+																                                                    finally { this.showLoader(false); }
+																                                                },
+																
+																                                                async loadCallContacts(campaignId, campaignName) {
+																                                                    this.currentCampaignId = campaignId;
+																                                                    this.currentCampaignName = campaignName;
+																                                                    
+																                                                    // UI Updates
+																                                                    document.getElementById('current-campaign-name').innerText = campaignName;
+																                                                    document.getElementById('selected-campaign-info').classList.remove('hidden');
+																                                                    document.querySelectorAll('.campaign-mini-card').forEach(el => el.classList.remove('selected'));
+																                                                    
+																                                                    this.showLoader(true);
+																                                                    try {
+																                                                        const res = await fetch(`/api/management/campaigns/${campaignId}/contacts`, {
+																                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+																                                                        });
+																                                                        const contacts = await res.json();
+																                                                        const tbody = document.getElementById('call-contact-list-body');
+																                                                        tbody.innerHTML = contacts.map(c => `
+																                                                            <tr>
+																                                                                <td><strong>${c.nom}</strong></td>
+																                                                                <td><span style="font-family:monospace">${c.telephone}</span></td>
+																                                                                <td><span class="badge ${c.status === 'nouveau' ? 'badge-primary' : 'badge-neutral'}">${c.status}</span></td>
+																                                                                <td>
+																                                                                    <button onclick="App.startCall(${c.id}, '${c.nom.replace(/'/g, "\\'")}', '${c.telephone}')" 
+																                                                                            class="btn-glow small" style="padding: 0.5rem 1rem;">
+																                                                                        📞 Appeler
+																                                                                    </button>
+																                                                                </td>
+																                                                            </tr>
+																                                                        `).join('');
+																                                                    } catch (err) { alert(err.message); }
+																                                                    finally { this.showLoader(false); }
+																                                                },
+																
+																                                                async startCall(contactId, contactName, contactPhone) {
+																                                                    this.showLoader(true);
+																                                                    try {
+																                                                        const res = await fetch('/api/calls', {
+																                                                            method: 'POST',
+																                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+																                                                            body: JSON.stringify({
+																                                                                campaign_id: this.currentCampaignId,
+																                                                                contact_id: contactId
+																                                                            })
+																                                                        });
+																                                                        const data = await res.json();
+																                                                        if (res.ok) {
+																                                                            this.currentCallId = data.call_id;
+																                                                            this.showCallUI(contactName, contactPhone);
+																                                                        } else throw new Error(data.error);
+																                                                    } catch (err) { alert(err.message); }
+																                                                    finally { this.showLoader(false); }
+																                                                },
+																
+																                                                showCallUI(name, phone) {
+																                                                    const overlay = document.getElementById('call-sim-overlay');
+																                                                    document.getElementById('call-sim-name').innerText = name;
+																                                                    document.getElementById('call-sim-phone').innerText = phone;
+																                                                    document.getElementById('call-avatar-initial').innerText = name[0];
+																                                                    
+																                                                    overlay.classList.remove('hidden');
+																                                                    this.callStartTime = Date.now();
+																                                                    this.updateCallTimer();
+																                                                    this.callTimer = setInterval(() => this.updateCallTimer(), 1000);
+																                                                },
+																
+																                                                updateCallTimer() {
+																                                                    const diff = Math.floor((Date.now() - this.callStartTime) / 1000);
+																                                                    const mins = Math.floor(diff / 60).toString().padStart(2, '0');
+																                                                    const secs = (diff % 60).toString().padStart(2, '0');
+																                                                    document.getElementById('call-duration-display').innerText = `${mins}:${secs}`;
+																                                                },
+																
+																                                                async terminateCall() {
+																                                                    clearInterval(this.callTimer);
+																                                                    this.showLoader(true);
+																                                                    try {
+																                                                        const res = await fetch(`/api/calls/${this.currentCallId}/end`, {
+																                                                            method: 'PUT',
+																                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+																                                                            body: JSON.stringify({ recording_path: 'simulated_recording.mp3' })
+																                                                        });
+																                                                        if (res.ok) {
+														                                                            document.getElementById('call-sim-overlay').classList.add('hidden');
+													                                                            UI.showQualificationForm(this.currentCallId, this.currentCampaignId);
+													                                                        }
+																                                                    } catch (err) { console.error(err); }
+																                                                    finally { this.showLoader(false); }
+																                                                },
+																
+																                                                async updateAgentStatus(status) {
+																                                                    try {
+																                                                        await fetch('/api/agent/status', {
+																                                                            method: 'PUT',
+																                                                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+																                                                            body: JSON.stringify({ status })
+																                                                        });
+																                                                    } catch (err) { console.error(err); }
+																                                                },
+									
+																                                                async loadRecentCalls() {
+															                                                    this.showLoader(true);
+															                                                    try {
+															                                                        const res = await fetch('/api/calls/recent', {
+															                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+															                                                        });
+															                                                        const calls = await res.json();
+															                                                        const tbody = document.getElementById('history-list-body');
+															                                                        
+															                                                        tbody.innerHTML = calls.length ? calls.map(c => `
+															                                                            <tr>
+															                                                                <td><strong>${c.contact}</strong></td>
+															                                                                <td>${c.campaign}</td>
+															                                                                <td>${c.start}</td>
+															                                                                <td>${c.duration}s</td>
+															                                                                <td><span class="badge ${c.status === 'termine' ? 'badge-success' : 'badge-neutral'}">${c.status}</span></td>
+															                                                                <td>
+															                                                                    <button onclick="App.viewCallDetails(${c.id})" class="btn-action">👁️ Détails</button>
+															                                                                </td>
+															                                                            </tr>
+															                                                        `).join('') : '<tr><td colspan="6" style="text-align:center; padding:3rem; opacity:0.5;">Aucun appel récent</td></tr>';
+															                                                    } catch (err) { console.error(err); }
+															                                                    finally { this.showLoader(false); }
+															                                                },
+									
+																                                                async viewCallDetails(id) {
+																                                                    this.showLoader(true);
+																                                                    try {
+																                                                        const res = await fetch(`/api/calls/${id}/details`, {
+																                                                            headers: { 'Authorization': `Bearer ${this.token}` }
+																                                                        });
+																                                                        const call = await res.json();
+																                                                        
+																                                                        UI.showGenericModal(`Détails de l'appel #${id}`, `
+																                                                            <div class="details-grid animate-fade-in">
+																                                                                <div class="detail-item"><label>Contact</label><span>${call.contact}</span></div>
+																                                                                <div class="detail-item"><label>Téléphone</label><span>${call.phone}</span></div>
+																                                                                <div class="detail-item"><label>Campagne</label><span>${call.campaign}</span></div>
+																                                                                <div class="detail-item"><label>Début</label><span>${call.start}</span></div>
+																                                                                <div class="detail-item"><label>Durée</label><span>${call.duration}s</span></div>
+																                                                                <div class="detail-item"><label>Statut</label><span class="badge">${call.status}</span></div>
+																                                                            </div>
+																                                                            ${call.qualified_at ? `<div style="margin-bottom:1.5rem; padding:1rem; background:rgba(0,184,148,0.1); border:1px solid var(--success); border-radius:12px; color:var(--success); font-weight:700;">✅ Qualifié le ${call.qualified_at}</div>` : ''}
+																                                                            <div class="panel" style="background:var(--bg-app); border-radius:18px;">
+																                                                                <h4 style="margin:0 0 1rem 0; font-family:'Outfit'; color:var(--primary);">Informations de Qualification</h4>
+																                                                                <div class="custom-fields-list">
+																                                                                    ${call.custom_fields.length ? call.custom_fields.map(f => `
+																                                                                        <div class="field-row">
+																                                                                            <label>${f.label}</label>
+																                                                                            <span>${f.value || '-'}</span>
+																                                                                        </div>
+																                                                                    `).join('') : '<p style="opacity:0.5; padding:1rem; text-align:center;">Aucune qualification saisie pour cet appel.</p>'}
+																                                                                </div>
+																                                                            </div>
+																                                                        `, true);
+																                                                    } catch (err) { alert(err.message); }
+																                                                    finally { this.showLoader(false); }
+																                                                },
+																											
+																											        async loadGlobalContacts() {
+																											            this.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/management/campaigns', {
+																											                    headers: { 'Authorization': `Bearer ${this.token}` }
+																											                });
+																											                const campaigns = await res.json();
+																											                const container = document.getElementById('contact-campaign-selector');
+																											                container.innerHTML = campaigns.map(c => `
+																											                    <div onclick="App.loadCampaignContacts(${c.id})" class="activity-item" style="cursor:pointer; transition:0.2s;" id="campaign-item-${c.id}">
+																											                        <strong>${c.nom}</strong>
+																											                    </div>
+																											                `).join('');
+																											                document.getElementById('btn-add-contact').classList.add('hidden');
+																											                document.getElementById('contact-list-body').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-dim);">Veuillez sélectionner une campagne à droite.</td></tr>';
+																											            } catch (err) { console.error(err); }
+																											            finally { this.showLoader(false); }
+																											        },
+																											
+																											        async loadCampaignContacts(campaignId) {
+																											            this.currentCampaignId = campaignId;
+																											            this.showLoader(true);
+																											            
+																											            // Highlight active campaign
+																											            document.querySelectorAll('#contact-campaign-selector .activity-item').forEach(el => el.style.borderColor = 'transparent');
+																											            const activeItem = document.getElementById(`campaign-item-${campaignId}`);
+																											            if(activeItem) activeItem.style.borderColor = 'var(--primary)';
+																											
+																											            try {
+																											                const res = await fetch(`/api/management/campaigns/${campaignId}/contacts`, {
+																											                    headers: { 'Authorization': `Bearer ${this.token}` }
+																											                });
+																											                const contacts = await res.json();
+																											                const tbody = document.getElementById('contact-list-body');
+																											                
+																											                document.getElementById('btn-add-contact').classList.remove('hidden');
+																											
+																											                tbody.innerHTML = contacts.length ? contacts.map(c => `
+																											                    <tr>
+																											                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
+																											                        <td>${c.telephone}<br><small>${c.email || '-'}</small></td>
+																											                        <td><span class="badge badge-neutral">${c.source}</span></td>
+																											                        <td><span class="badge ${c.status === 'nouveau' ? 'badge-primary' : (c.status === 'termine' ? 'badge-success' : 'badge-neutral')}">${c.status}</span></td>
+																											                        <td>
+																											                            <div class="action-btns">
+																											                                <button onclick="UI.editContact(${c.id})" class="btn-action">✏️</button>
+																											                                <button onclick="UI.deleteContact(${c.id})" class="btn-action delete">🗑️</button>
+																											                            </div>
+																											                        </td>
+																											                    </tr>
+																											                `).join('') : '<tr><td colspan="5" style="text-align:center; padding:2rem;">Aucun contact dans cette campagne.</td></tr>';
+																											            } catch (err) { alert(err.message); }
+																											            finally { this.showLoader(false); }
+																											        },
+																											
+																											        async loadCampaigns() {
+																											            console.log("--- Début rechargement campagnes ---");
+																											            this.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
+																											                    method: 'GET',
+																											                    cache: 'no-store', // Désactive le cache navigateur
+																											                    headers: { 
+																											                        'Authorization': `Bearer ${this.token}`,
+																											                        'Accept': 'application/json'
+																											                    }
+																											                });
+																											                const data = await res.json();
+																											                console.log("Données reçues après reload:", data);
+																											                
+																											                if (!Array.isArray(data)) {
+																											                    console.error("Data received is not an array:", data);
+																											                    throw new Error(data.message || "Réponse invalide du serveur");
+																											                }
+																											
+																											                const tbody = document.getElementById('campaign-list-body');
+																											                tbody.innerHTML = data.length ? data.map(c => `
+																											                    <tr>
+																											                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
+																											                        <td>${c.date_debut || '-'} / ${c.date_fin || '-'}</td>
+																											                        <td>${c.responsable || 'Non assigné'}</td>
+																											                        <td><span class='badge'>${c.contacts_count}</span></td>
+																											                        <td>
+																											                            <div class="action-btns">
+																											                                <button onclick="UI.manageAssignments(${c.id})" class="btn-action" title="Affectations">🤝</button>
+																											                                <button onclick="UI.manageFields(${c.id})" class="btn-action" title="Formulaire">📋</button>
+																											                                <button onclick="UI.editCampaign(${c.id})" class="btn-action">✏️</button>
+																											                                <button onclick="UI.deleteCampaign(${c.id})" class="btn-action delete">🗑️</button>
+																											                            </div>
+																											                        </td>
+																											                    </tr>
+																											                `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Aucune campagne trouvée</td></tr>';
+																											            } catch (err) { 
+																											                console.error("LoadCampaigns Error:", err);
+																											                alert("Erreur: " + err.message);
+																											            }
+																											            finally { this.showLoader(false); }
+																											        },
+																											
+																											        async loadUsers() {
+																											            this.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/management/users?t=' + Date.now(), {
+																											                    method: 'GET',
+																											                    cache: 'no-store',
+																											                    headers: { 
+																											                        'Authorization': `Bearer ${this.token}`,
+																											                        'Accept': 'application/json'
+																											                    }
+																											                });
+																											                const data = await res.json();
+																											                
+																											                if (!Array.isArray(data)) {
+																											                    throw new Error(data.message || "Réponse invalide du serveur");
+																											                }
+																											
+																											                const tbodyActive = document.getElementById('user-list-body');
+																											                const tbodyPending = document.getElementById('pending-user-list-body');
+																											                
+																											                const activeUsers = data.filter(u => u.status === 'active');
+																											                const pendingUsers = data.filter(u => u.status === 'inactive');
+																											
+																											                tbodyActive.innerHTML = activeUsers.map(u => {
+																											                    const roleClass = u.role === 'responsable' ? 'badge-admin' : (u.role === 'superviseur' ? 'badge-primary' : 'badge-neutral');
+																											                    return `
+																											                        <tr>
+																											                            <td><div style="display:flex; align-items:center; gap:12px;">
+																											                                <div class="user-avatar" style="width:32px; height:32px; font-size:0.8rem;">${u.prenom[0]}</div>
+																											                                <strong>${u.prenom} ${u.nom}</strong>
+																											                            </div></td>
+																											                            <td><span style="color:var(--text-dim); font-size:0.9rem;">${u.email}</span></td>
+																											                            <td><span class="badge ${roleClass}">${u.role}</span></td>
+																											                            <td><span class="badge badge-success">Actif</span></td>
+																											                            <td>
+																											                                <div class="action-btns">
+																											                                    <button onclick="UI.editUser(${u.id})" class="btn-action">✏️</button>
+																											                                    <button onclick="UI.deleteUser(${u.id})" class="btn-action delete">🗑️</button>
+																											                                </div>
+																											                            </td>
+																											                        </tr>
+																											                    `;
+																											                }).join('');
+																											
+																											                if (tbodyPending) {
+																											                    tbodyPending.innerHTML = pendingUsers.length ? pendingUsers.map(u => `
+																											                        <tr>
+																											                            <td><strong>${u.prenom} ${u.nom}</strong></td>
+																											                            <td><span style="color:var(--text-dim); font-size:0.9rem;">${u.email}</span></td>
+																											                            <td><span class="badge badge-neutral">${u.role}</span></td>
+																											                            <td>
+																											                                <button onclick="UI.validateUser(${u.id})" class="btn-glow small" style="background:var(--success); border-radius:8px; padding:0.5rem 1rem;">
+																											                                    ✅ Valider l'accès
+																											                                </button>
+																											                            </td>
+																											                        </tr>
+																											                    `) : '<tr><td colspan="4" style="text-align:center; padding:1rem; opacity:0.5;">Aucune inscription en attente</td></tr>';
+																											                }
+																											
+																											            } catch (err) { 
+																											                console.error("LoadUsers Error:", err);
+																											                alert("Erreur: " + err.message);
+																											            }
+																											            finally { this.showLoader(false); }
+																											        },
+																											
+																											        showLoader(show) { document.getElementById('global-loader').classList.toggle('hidden', !show); },
+																											
+																											        addActivity(msg) {
+																											            const container = document.getElementById('activity-log');
+																											            if (!container) return;
+																											            
+																											            const empty = container.querySelector('.empty');
+																											            if (empty) empty.remove();
+																											
+																											            const item = document.createElement('div');
+																											            item.className = 'activity-item';
+																											            const now = new Date();
+																											            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+																											            
+																											            item.innerHTML = `<span class="time">${timeStr}</span> <p class="msg">${msg}</p>`;
+																											            container.prepend(item);
+																											        },
+																											
+																											        logout() {
+																											            localStorage.removeItem('zanova_token');
+																											            location.reload();
+																											        }
+																											    };
+																											
+																											    window.UI = {
+																											        async deleteCampaign(id) {
+																											            if(!confirm("⚠️ Êtes-vous sûr de vouloir supprimer cette campagne ? Cette action est irréversible.")) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/campaigns/${id}`, {
+																											                    method: 'DELETE',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if(res.ok) {
+																											                    App.addActivity("Campagne supprimée");
+																											                    App.loadCampaigns();
+																											                } else {
+																											                    throw new Error("Erreur lors de la suppression");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async editCampaign(id) {
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const campaigns = await res.json();
+																											                const camp = campaigns.find(c => c.id === parseInt(id));
+																											
+																											                if (!camp) throw new Error("Campagne introuvable.");
+																											                this.showCampaignModal(camp);
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        showCampaignModal(existingData = null) {
+																											            const container = document.getElementById('modal-container');
+																											            const title = document.getElementById('modal-title');
+																											            const body = document.getElementById('modal-body');
+																											            const saveBtn = document.getElementById('modal-save');
+																											
+																											            title.innerText = existingData ? "Modifier la Campagne" : "Créer une nouvelle Campagne";
+																											            body.innerHTML = `
+																											                <div class="animate-fade-in">
+																											                    <input type="hidden" id="m-camp-id" value="${existingData ? existingData.id : ''}">
+																											                    
+																											                    <div class="input-group">
+																											                        <label>Titre de la campagne</label>
+																											                        <input type="text" id="m-camp-nom" value="${existingData ? existingData.nom : ''}" placeholder="Ex: Campagne Acquisition Mars 2024">
+																											                    </div>
+																											
+																											                    <div class="input-group">
+																											                        <label>Objectifs & Description</label>
+																											                        <textarea id="m-camp-desc" placeholder="Décrivez ici les spécificités de cette campagne...">${existingData ? (existingData.description || '') : ''}</textarea>
+																											                    </div>
+																											
+																											                    <div class="modal-grid">
+																											                        <div class="input-group">
+																											                            <label>Date de Lancement</label>
+																											                            <input type="date" id="m-camp-start" value="${existingData ? (existingData.date_debut || '') : ''}">
+																											                        </div>
+																											                        <div class="input-group">
+																											                            <label>Échéance (Fin)</label>
+																											                            <input type="date" id="m-camp-end" value="${existingData ? (existingData.date_fin || '') : ''}">
+																											                        </div>
+																											                    </div>
+																											                </div>
+																											            `;
+																											            
+																											            saveBtn.className = "btn-modal-save";
+																											            saveBtn.innerText = existingData ? "Confirmer les modifications" : "Lancer la campagne";
+																											            saveBtn.onclick = () => this.saveCampaign(existingData ? 'PUT' : 'POST');
+																											            container.classList.remove('hidden');
+																											        },
+																											
+																											        async saveCampaign(method) {
+																											            const id = document.getElementById('m-camp-id').value;
+																											            const payload = {
+																											                nom: document.getElementById('m-camp-nom').value,
+																											                description: document.getElementById('m-camp-desc').value,
+																											                date_debut: document.getElementById('m-camp-start').value,
+																											                date_fin: document.getElementById('m-camp-end').value
+																											            };
+																											
+																											            if (!payload.nom) {
+																											                alert("⚠️ Le titre de la campagne est obligatoire.");
+																											                return;
+																											            }
+																											
+																											            const url = method === 'PUT' ? `/api/management/campaigns/${id}` : '/api/management/campaigns';
+																											
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(url + '?t=' + Date.now(), {
+																											                    method: method,
+																											                    headers: { 
+																											                        'Content-Type': 'application/json', 
+																											                        'Authorization': `Bearer ${App.token}`,
+																											                        'Accept': 'application/json'
+																											                    },
+																											                    body: JSON.stringify(payload)
+																											                });
+																											                
+																											                const responseData = await res.json();
+																											
+																											                if (res.ok) {
+																											                    this.closeModal();
+																											                    App.addActivity(method === 'PUT' ? `Succès: Campagne "${payload.nom}" mise à jour` : `Succès: Campagne "${payload.nom}" créée`);
+																											                    
+																											                    // On attend un tout petit peu pour laisser le temps au flush DB de se propager
+																											                    setTimeout(async () => {
+																											                        await App.loadCampaigns();
+																											                        console.log("Liste rafraîchie avec succès");
+																											                    }, 300);
+																											
+																											                    // Message de succès temporaire
+																											                    const successMsg = document.createElement('div');
+																											                    successMsg.className = "alert-box success";
+																											                    successMsg.style.position = "fixed"; successMsg.style.top = "20px"; successMsg.style.right = "20px";
+																											                    successMsg.innerText = "Données enregistrées avec succès !";
+																											                    document.body.appendChild(successMsg);
+																											                    setTimeout(() => successMsg.remove(), 3000);
+																											                } else {
+																											                    throw new Error(responseData.error || `Erreur serveur (Code: ${res.status})`);
+																											                }
+																											            } catch (err) { 
+																											                console.error("Save Error:", err);
+																											                alert("Détails de l'erreur: " + err.message); 
+																											            }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        closeModal() {
+																											            const container = document.getElementById('modal-container');
+																											            container.classList.add('hidden');
+																											            // Reset generic modal state
+																											            const saveBtn = document.getElementById('modal-save');
+																											            const footer = document.getElementById('modal-footer');
+																											            if (saveBtn) saveBtn.classList.remove('hidden');
+																											            if (footer) footer.style.justifyContent = 'space-between';
+																											        },
+																											
+																											        // --- GESTION ÉQUIPE (USERS) ---
+																											        showUserModal(existingData = null) {
+																											            const container = document.getElementById('modal-container');
+																											            const body = document.getElementById('modal-body');
+																											            const saveBtn = document.getElementById('modal-save');
+																											
+																											            title.innerText = existingData ? "Modifier le Membre" : "Ajouter un Membre";
+																											            body.innerHTML = `
+																											                <div class="animate-fade-in">
+																											                    <input type="hidden" id="m-user-id" value="${existingData ? existingData.id : ''}">
+																											                    <div class="modal-grid">
+																											                        <div class="input-group">
+																											                            <label>Prénom</label>
+																											                            <input type="text" id="m-user-prenom" value="${existingData ? existingData.prenom : ''}" placeholder="Jean">
+																											                        </div>
+																											                        <div class="input-group">
+																											                            <label>Nom</label>
+																											                            <input type="text" id="m-user-nom" value="${existingData ? existingData.nom : ''}" placeholder="Dupont">
+																											                        </div>
+																											                    </div>
+																											                    <div class="input-group">
+																											                        <label>Email professionnel</label>
+																											                        <input type="email" id="m-user-email" value="${existingData ? existingData.email : ''}" placeholder="jean.dupont@zanova.com">
+																											                    </div>
+																											                    <div class="modal-grid">
+																											                        <div class="input-group">
+																											                            <label>Rôle Système</label>
+																											                            <select id="m-user-role" class="modal-select">
+																											                                <option value="agent" ${existingData && existingData.role === 'agent' ? 'selected' : ''}>Agent (Appelant)</option>
+																											                                <option value="superviseur" ${existingData && existingData.role === 'superviseur' ? 'selected' : ''}>Superviseur</option>
+																											                                <option value="responsable" ${existingData && existingData.role === 'responsable' ? 'selected' : ''}>Responsable (Admin)</option>
+																											                            </select>
+																											                        </div>
+																											                        <div class="input-group">
+																											                            <label>Statut</label>
+																											                            <select id="m-user-status" class="modal-select">
+																											                                <option value="active" ${existingData && existingData.status === 'active' ? 'selected' : ''}>Actif</option>
+																											                                <option value="inactive" ${existingData && existingData.status === 'inactive' ? 'selected' : ''}>Inactif</option>
+																											                            </select>
+																											                        </div>
+																											                    </div>
+																											                </div>
+																											            `;
+																											            
+																											            saveBtn.className = "btn-modal-save";
+																											            saveBtn.innerText = existingData ? "Enregistrer les modifications" : "Créer le profil";
+																											            saveBtn.onclick = () => this.saveUser(existingData ? 'PUT' : 'POST');
+																											            container.classList.remove('hidden');
+																											        },
+																											
+																											        async saveUser(method) {
+																											            const id = document.getElementById('m-user-id').value;
+																											            const payload = {
+																											                prenom: document.getElementById('m-user-prenom').value,
+																											                nom: document.getElementById('m-user-nom').value,
+																											                email: document.getElementById('m-user-email').value,
+																											                role: document.getElementById('m-user-role').value,
+																											                status: document.getElementById('m-user-status').value
+																											            };
+																											
+																											            const url = method === 'PUT' ? `/api/management/users/${id}` : '/api/management/users';
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(url + '?t=' + Date.now(), {
+																											                    method: method,
+																											                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
+																											                    body: JSON.stringify(payload)
+																											                });
+																											                if (res.ok) {
+																											                    this.closeModal();
+																											                    App.addActivity(`Membre ${payload.prenom} mis à jour`);
+																											                    await App.loadUsers();
+																											                } else {
+																											                    const data = await res.json();
+																											                    throw new Error(data.error || "Erreur lors de la sauvegarde utilisateur");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async editUser(id) {
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch('/api/management/users?t=' + Date.now(), {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const users = await res.json();
+																											                const user = users.find(u => u.id === parseInt(id));
+																											                if (user) this.showUserModal(user);
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async manageFields(campaignId) {
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/campaigns/${campaignId}/fields?t=` + Date.now(), {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const fields = await res.json();
+																											                
+																											                const container = document.getElementById('modal-container');
+																											                const title = document.getElementById('modal-title');
+																											                const body = document.getElementById('modal-body');
+																											                const saveBtn = document.getElementById('modal-save');
+																											
+																											                title.innerText = "Champs du Formulaire";
+																											                body.innerHTML = `
+																											                    <div class="animate-fade-in" style="min-width: 500px">
+																											                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Définissez les questions que l'agent devra remplir lors de l'appel.</p>
+																											                        <div id="fields-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
+																											                            ${fields.map(f => `
+																											                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
+																											                                    <div>
+																											                                        <strong>${f.label}</strong> 
+																											                                        <span class="badge badge-neutral" style="margin-left:10px">${f.type}</span>
+																											                                    </div>
+																											                                    <button onclick="UI.deleteField(${f.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
+																											                                </div>
+																											                            `).join('') || '<p style="text-align:center; padding:1rem; opacity:0.5;">Aucun champ configuré</p>'}
+																											                        </div>
+																											                        
+																											                        <div class="panel" style="background:var(--bg-app); padding:1rem;">
+																											                            <h4 style="margin:0 0 1rem 0; font-family:'Outfit'; font-size:0.9rem;">AJOUTER UN CHAMP</h4>
+																											                            <div class="modal-grid" style="gap:1rem;">
+																											                                <div class="input-group">
+																											                                    <label>Nom du champ</label>
+																											                                    <input type="text" id="new-field-label" placeholder="ex: Budget Client">
+																											                                </div>
+																											                                <div class="input-group">
+																											                                    <label>Type</label>
+																											                                    <select id="new-field-type" class="modal-select" style="padding:0.75rem 1rem;">
+																											                                        <option value="text">Texte</option>
+																											                                        <option value="number">Nombre</option>
+																											                                        <option value="date">Date</option>
+																											                                        <option value="textarea">Commentaire Long</option>
+																											                                    </select>
+																											                                </div>
+																											                            </div>
+																											                            <button onclick="UI.addField(${campaignId})" class="btn-glow" style="width:100%; margin-top:1rem; justify-content:center;">
+																											                                + Ajouter à la campagne
+																											                            </button>
+																											                        </div>
+																											                    </div>
+																											                `;
+																											                
+																											                saveBtn.innerText = "Fermer";
+																											                saveBtn.onclick = () => this.closeModal();
+																											                container.classList.remove('hidden');
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async addField(campaignId) {
+																											            const label = document.getElementById('new-field-label').value;
+																											            const type = document.getElementById('new-field-type').value;
+																											            if(!label) return alert("Le nom est requis");
+																											
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/campaigns/${campaignId}/fields`, {
+																											                    method: 'POST',
+																											                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
+																											                    body: JSON.stringify({ label, type, required: false })
+																											                });
+																											                if(res.ok) {
+																											                    App.addActivity("Nouveau champ ajouté");
+																											                    this.manageFields(campaignId);
+																											                }
+																											            } catch (err) { alert("Erreur: " + err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async deleteField(fieldId, campaignId) {
+																											            if(!confirm("Supprimer ce champ ?")) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/fields/${fieldId}`, {
+																											                    method: 'DELETE',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if(res.ok) {
+																											                    App.addActivity("Champ supprimé");
+																											                    this.manageFields(campaignId);
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+									
+																											        showGenericModal(title, html, hideSave = false) {
+																											            const container = document.getElementById('modal-container');
+																											            document.getElementById('modal-title').innerText = title;
+																											            document.getElementById('modal-body').innerHTML = html;
+																											            const footer = document.getElementById('modal-footer');
+																											            const saveBtn = document.getElementById('modal-save');
+																											            
+																											            if (hideSave) {
+																											                saveBtn.classList.add('hidden');
+																											                footer.style.justifyContent = 'flex-end';
+																											            } else {
+																											                saveBtn.classList.remove('hidden');
+																											                footer.style.justifyContent = 'space-between';
+																											            }
+																											            
+																											            container.classList.remove('hidden');
+																											        },
+																											
+																											        async manageAssignments(campaignId) {
+																											            App.showLoader(true);
+																											            try {
+																											                const resAss = await fetch(`/api/management/campaigns/${campaignId}/users?t=` + Date.now(), {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const assignments = await resAss.json();
+																											
+																											                const resAll = await fetch('/api/management/users?t=' + Date.now(), {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const allUsers = await resAll.json();
+																											
+																											                const container = document.getElementById('modal-container');
+																											                const title = document.getElementById('modal-title');
+																											                const body = document.getElementById('modal-body');
+																											                const saveBtn = document.getElementById('modal-save');
+																											
+																											                title.innerText = "Affectations de l'Équipe";
+																											                body.innerHTML = `
+																											                    <div class="animate-fade-in" style="min-width: 500px">
+																											                        <div id="assignment-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
+																											                            <label style="font-size:0.75rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">MEMBRES ACTIFS</label>
+																											                            ${assignments.map(a => `
+																											                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
+																											                                    <div>
+																											                                        <strong>${a.nom}</strong> 
+																											                                        <span class="badge ${a.role === 'responsable' ? 'badge-admin' : 'badge-primary'}" style="margin-left:10px">${a.role}</span>
+																											                                    </div>
+																											                                    <button onclick="UI.unassignUser(${a.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
+																											                                </div>
+																											                            `).join('') || '<p style="text-align:center; padding:1.5rem; background:var(--glass); border-radius:12px; opacity:0.5;">Aucun personnel affecté</p>'}
+																											                        </div>
+																											
+																											                        <div class="panel" style="background:var(--bg-app); padding:1.5rem; border:1px solid var(--primary-glow);">
+																											                            <label style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase; display:block; margin-bottom:1rem;">NOUVELLE AFFECTATION</label>
+																											                            <div style="display:flex; gap:1rem;">
+																											                                <select id="assign-user-select" class="modal-select" style="flex:1;">
+																											                                    <option value="">Sélectionner un membre...</option>
+																											                                    ${allUsers.filter(u => !assignments.find(a => a.user_id === u.id)).map(u => `
+																											                                        <option value="${u.id}">${u.prenom} ${u.nom} (${u.role})</option>
+																											                                    `).join('')}
+																											                                </select>
+																											                                <button onclick="UI.doAssign(${campaignId})" class="btn-glow">Affecter</button>
+																											                            </div>
+																											                        </div>
+																											                    </div>
+																											                `;
+																											                
+																											                saveBtn.innerText = "Terminer";
+																											                saveBtn.onclick = () => this.closeModal();
+																											                container.classList.remove('hidden');
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async doAssign(campaignId) {
+																											            const userId = document.getElementById('assign-user-select').value;
+																											            if(!userId) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/campaigns/${campaignId}/assign/${userId}`, {
+																											                    method: 'POST',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if(res.ok) {
+																											                    App.addActivity("Membre affecté");
+																											                    this.manageAssignments(campaignId);
+																											                } else {
+																											                    const data = await res.json();
+																											                    throw new Error(data.error);
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async unassignUser(assignmentId, campaignId) {
+																											            if(!confirm("Retirer ce membre ?")) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/assignments/${assignmentId}`, {
+																											                    method: 'DELETE',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if(res.ok) {
+																											                    App.addActivity("Membre retiré");
+																											                    this.manageAssignments(campaignId);
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async deleteUser(id) {
+																											            if(!confirm("⚠️ Supprimer ce membre ?")) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/users/${id}?t=` + Date.now(), {
+																											                    method: 'DELETE',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if (res.ok) {
+																											                    App.addActivity("Membre supprimé");
+																											                    await App.loadUsers();
+																											                } else {
+																											                    const data = await res.json();
+																											                    throw new Error(data.error || "Action impossible");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async validateUser(id) {
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/users/${id}`, {
+																											                    method: 'PUT',
+																											                    headers: { 
+																											                        'Content-Type': 'application/json',
+																											                        'Authorization': `Bearer ${App.token}` 
+																											                    },
+																											                    body: JSON.stringify({ status: 'active' })
+																											                });
+																											                if (res.ok) {
+																											                    App.addActivity("Nouvel utilisateur validé");
+																											                    await App.loadUsers();
+																											                } else {
+																											                    throw new Error("Erreur lors de la validation");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        // --- GESTION CONTACTS ---
+																											        async showContactModal(existingData = null) {
+																											            const container = document.getElementById('modal-container');
+																											            const title = document.getElementById('modal-title');
+																											            const body = document.getElementById('modal-body');
+																											            const saveBtn = document.getElementById('modal-save');
+																											
+																											            // On récupère les campagnes si on est en création "globale" (hors vue contact filtrée)
+																											            let campaigns = [];
+																											            if (!existingData && !App.currentCampaignId) {
+																											                App.showLoader(true);
+																											                try {
+																											                    const res = await fetch('/api/management/campaigns', {
+																											                        headers: { 'Authorization': `Bearer ${App.token}` }
+																											                    });
+																											                    campaigns = await res.json();
+																											                } catch(e) { console.error(e); }
+																											                finally { App.showLoader(false); }
+																											            }
+																											
+																											            title.innerText = existingData ? "Modifier le Contact" : "Ajouter un Contact";
+																											            
+																											            let campaignSelector = '';
+																											            if (!existingData && !App.currentCampaignId) {
+																											                campaignSelector = `
+																											                    <div class="input-group">
+																											                        <label>Campagne de destination</label>
+																											                        <select id="m-contact-campaign-id" class="modal-select">
+																											                            <option value="">Sélectionner une campagne...</option>
+																											                            ${campaigns.map(c => `<option value="${c.id}">${c.nom}</option>`).join('')}
+																											                        </select>
+																											                    </div>
+																											                `;
+																											            }
+																											
+																											            body.innerHTML = `
+																											                <div class="animate-fade-in">
+																											                    <input type="hidden" id="m-contact-id" value="${existingData ? existingData.id : ''}">
+																											                    ${campaignSelector}
+																											                    <div class="modal-grid">
+																											                        <div class="input-group">
+																											                            <label>Nom Complet</label>
+																											                            <input type="text" id="m-contact-nom" value="${existingData ? existingData.nom : ''}" placeholder="M. Jean Durand">
+																											                        </div>
+																											                        <div class="input-group">
+																											                            <label>Téléphone</label>
+																											                            <input type="text" id="m-contact-tel" value="${existingData ? existingData.telephone : ''}" placeholder="06XXXXXXXX">
+																											                        </div>
+																											                    </div>
+																											                    <div class="input-group">
+																											                        <label>Email</label>
+																											                        <input type="email" id="m-contact-email" value="${existingData ? (existingData.email || '') : ''}" placeholder="jean.durand@example.com">
+																											                    </div>
+																											                    <div class="modal-grid">
+																											                        <div class="input-group">
+																											                            <label>Source</label>
+																											                            <input type="text" id="m-contact-source" value="${existingData ? (existingData.source || 'manuel') : 'manuel'}" placeholder="Ex: Site Web, LinkedIn">
+																											                        </div>
+																											                        <div class="input-group">
+																											                            <label>Statut</label>
+																											                            <select id="m-contact-status" class="modal-select">
+																											                                <option value="nouveau" ${existingData && existingData.status === 'nouveau' ? 'selected' : ''}>Nouveau</option>
+																											                                <option value="en_cours" ${existingData && existingData.status === 'en_cours' ? 'selected' : ''}>En cours</option>
+																											                                <option value="termine" ${existingData && existingData.status === 'termine' ? 'selected' : ''}>Terminé</option>
+																											                            </select>
+																											                        </div>
+																											                    </div>
+																											                </div>
+																											            `;
+																											            
+																											            saveBtn.className = "btn-modal-save";
+																											            saveBtn.innerText = existingData ? "Enregistrer les modifications" : "Créer le contact";
+																											            saveBtn.onclick = () => this.saveContact(existingData ? 'PUT' : 'POST');
+																											            container.classList.remove('hidden');
+																											        },
+																											
+																											        async saveContact(method) {
+																											            const id = document.getElementById('m-contact-id').value;
+																											            const campaignSelect = document.getElementById('m-contact-campaign-id');
+																											            const targetCampaignId = campaignSelect ? campaignSelect.value : App.currentCampaignId;
+																											
+																											            const payload = {
+																											                nom: document.getElementById('m-contact-nom').value,
+																											                telephone: document.getElementById('m-contact-tel').value,
+																											                email: document.getElementById('m-contact-email').value,
+																											                source: document.getElementById('m-contact-source').value,
+																											                status: document.getElementById('m-contact-status').value
+																											            };
+																											
+																											            if (!payload.nom || !payload.telephone) {
+																											                alert("⚠️ Le nom et le téléphone sont obligatoires.");
+																											                return;
+																											            }
+																											
+																											            if (method === 'POST' && !targetCampaignId) {
+																											                alert("⚠️ Veuillez sélectionner une campagne.");
+																											                return;
+																											            }
+																											
+																											            const url = method === 'PUT' ? `/api/management/contacts/${id}` : `/api/management/campaigns/${targetCampaignId}/contacts`;
+																											
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(url, {
+																											                    method: method,
+																											                    headers: { 
+																											                        'Content-Type': 'application/json', 
+																											                        'Authorization': `Bearer ${App.token}`
+																											                    },
+																											                    body: JSON.stringify(payload)
+																											                });
+																											                
+																											                if (res.ok) {
+																											                    this.closeModal();
+																											                    App.addActivity(`Contact "${payload.nom}" enregistré`);
+																											                    if (App.currentCampaignId) {
+																											                        App.loadCampaignContacts(App.currentCampaignId);
+																											                    } else {
+																											                        App.switchView('contacts'); // Aller voir les contacts
+																											                    }
+																											                } else {
+																											                    const data = await res.json();
+																											                    throw new Error(data.error || "Erreur lors de la sauvegarde du contact");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											
+																											        async editContact(id) {
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/contacts/${id}`, {
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                const contact = await res.json();
+																											                this.showContactModal(contact);
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+																											        async deleteContact(id) {
+																											            if(!confirm("⚠️ Supprimer ce contact ?")) return;
+																											            App.showLoader(true);
+																											            try {
+																											                const res = await fetch(`/api/management/contacts/${id}`, {
+																											                    method: 'DELETE',
+																											                    headers: { 'Authorization': `Bearer ${App.token}` }
+																											                });
+																											                if (res.ok) {
+																											                    App.addActivity("Contact supprimé");
+																											                    App.loadCampaignContacts(App.currentCampaignId);
+																											                } else {
+																											                    throw new Error("Erreur lors de la suppression");
+																											                }
+																											            } catch (err) { alert(err.message); }
+																											            finally { App.showLoader(false); }
+																											        },
+														
+														                                                        async showQualificationForm(callId, campaignId) {
+														                                                            App.showLoader(true);
+														                                                            try {
+														                                                                // Charger les champs dynamiques de la campagne
+														                                                                const res = await fetch(`/api/management/campaigns/${campaignId}/fields`, {
+														                                                                    headers: { 'Authorization': `Bearer ${App.token}` }
+														                                                                });
+														                                                                const fields = await res.json();
+														
+														                                                                const container = document.getElementById('modal-container');
+														                                                                const title = document.getElementById('modal-title');
+														                                                                const body = document.getElementById('modal-body');
+														                                                                const saveBtn = document.getElementById('modal-save');
+														
+														                                                                title.innerText = "Qualification de l'appel";
+														                                                                body.innerHTML = `
+														                                                                    <div class="animate-fade-in">
+														                                                                        <div class="input-group">
+														                                                                            <label>Résultat de l'appel</label>
+														                                                                            <select id="qual-status" class="modal-select">
+														                                                                                <option value="INTERESSE">✅ Client Intéressé</option>
+														                                                                                <option value="A_RAPPELER">🕒 À rappeler</option>
+														                                                                                <option value="PAS_INTERESSE">❌ Pas intéressé</option>
+														                                                                                <option value="FAUX_NUMERO">⚠️ Faux numéro / Injoignable</option>
+														                                                                            </select>
+														                                                                        </div>
+														
+														                                                                        <div class="dynamic-fields-area">
+														                                                                            ${fields.map(f => `
+														                                                                                <div class="input-group">
+														                                                                                    <label>${f.label} ${f.required ? '*' : ''}</label>
+														                                                                                    ${f.type === 'textarea' ? 
+														                                                                                        `<textarea class="qual-field" data-id="${f.id}" ${f.required ? 'required' : ''}></textarea>` :
+														                                                                                        `<input type="${f.type}" class="qual-field" data-id="${f.id}" ${f.required ? 'required' : ''} placeholder="${f.label}">`
+														                                                                                    }
+														                                                                                </div>
+														                                                                            `).join('')}
+														                                                                        </div>
+														                                                                    </div>
+														                                                                `;
+														
+														                                                                saveBtn.innerText = "Enregistrer la qualification";
+														                                                                saveBtn.onclick = () => this.saveQualification(callId);
+														                                                                container.classList.remove('hidden');
+														
+														                                                            } catch (err) { console.error(err); }
+														                                                            finally { App.showLoader(false); }
+														                                                        },
+														
+														                                                        async saveQualification(callId) {
+			                                                            console.log('=== SAVING QUALIFICATION ===');
+			                                                            console.log('Call ID:', callId);
+			                                                            
+			                                                            const status = document.getElementById('qual-status').value;
+			                                                            const values = {};
+			                                                            document.querySelectorAll('.qual-field').forEach(input => {
+			                                                                console.log(`Field ${input.dataset.id}:`, input.value);
+			                                                                values[input.dataset.id] = input.value;
+			                                                            });
+			                                                            
+			                                                            console.log('Status:', status);
+			                                                            console.log('Values to send:', values);
+			
+			                                                            App.showLoader(true);
+			                                                            try {
+			                                                                const payload = { status, values };
+			                                                                console.log('Sending payload:', JSON.stringify(payload));
+			                                                                
+			                                                                const res = await fetch(`/api/calls/${callId}/qualify`, {
+			                                                                    method: 'POST',
+			                                                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
+			                                                                    body: JSON.stringify(payload)
+			                                                                });
+			                                                                
+			                                                                const responseData = await res.json();
+			                                                                console.log('Response:', responseData);
+			                                                                
+			                                                                if (res.ok) {
+			                                                                    console.log('Qualification saved successfully!');
+			                                                                    this.closeModal();
+			                                                                    App.addActivity(`Appel #${callId} qualifié : ${status}`);
+			                                                                    App.loadCallContacts(App.currentCampaignId, App.currentCampaignName);
+			                                                                } else {
+			                                                                    console.error('Failed to save qualification:', responseData);
+			                                                                }
+			                                                            } catch (err) { 
+			                                                                console.error('Error saving qualification:', err);
+			                                                                alert(err.message); 
+			                                                            }
+			                                                            finally { App.showLoader(false); }
+			                                                        }
+																											    };
+																											
+																											    App.init();
+																											</script>
+																											{% endblock %}
