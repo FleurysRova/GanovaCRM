@@ -1,62 +1,4654 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ganova CRM - Plateforme de Gestion
-{% endblock %}
-
-{% block stylesheets %}
-	{{ parent() }}
-	<link rel="stylesheet" href="{{ asset('styles/dashboard.css') }}">
+{% block title %}Zanova CRM | High Performance
 {% endblock %}
 
 {% block body %}
-	{% include 'components/_loader.html.twig' %}
-
-	{# Écran d'authentification retiré pour accès direct #}
-
-	{# Layout Application Principal #}
-		<div
-		id="main-dashboard" class="app-layout"> {# Sidebar Navigation #}
-		{% include 'components/_sidebar.html.twig' with { 'activeView': 'dashboard' } %}
-
-		{# Overlay mobile #}
-		<div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-		{# Contenu Principal #}
-		<main
-			class="view-content">
-
-			{# En-tête #}
-			{% include 'components/_top-header.html.twig' %}
-
-			{# Conteneur de Vues Dynamiques #}
-			<div
-				id="views-container" class="animate-fade-in">
-
-				{# Dashboard Orchestrator #}
-				{% if role|default('admin') == 'agent' %}
-					{% include 'views/_agent-dashboard.html.twig' %}
-				{% elseif role|default('admin') == 'supervisor' %}
-					{% include 'views/_supervisor-dashboard.html.twig' %}
-				{% else %}
-					{% include 'views/_manager-dashboard.html.twig' %}
-				{% endif %}
-
-				{# Autres Vues #}
-				{% include 'views/_statistics.html.twig' %}
-				{% include 'views/_campaigns.html.twig' %}
-				{% include 'views/_users.html.twig' %}
-				{% include 'views/_contacts.html.twig' %}
-			</div>
-
-		</main>
+<div
+	id="full-app" class="theme-dark">
+	<!-- Overlay de Chargement -->
+	<div id="global-loader" class="loader-overlay hidden">
+		<div class="loader-content">
+			<div class="spinner"></div>
+			<p>Synchronisation Zanova...</p>
+		</div>
 	</div>
 
-	{# Modale Globale #}
-	{% include 'components/_modal.html.twig' %}
+	<!-- Écran de Login -->
+	<div id="auth-screen" class="screen animate-fade-in">
+		<div class="auth-card">
+			<div class="auth-header">
+				<div class="logo-circle">Z</div>
+				<h1>Zanova<span class="accent">CRM</span>
+				</h1>
+				<p>Système de gestion haute performance</p>
+			</div>
 
-{% endblock %}
+			<div class="auth-body">
+				<div id="auth-error" class="hidden alert-box error"></div>
 
-{% block javascripts %}
-	{{ parent() }}
-	<script src="{{ asset('js/dashboard.js') }}"></script>
+				<div class="input-group">
+					<label>Email Professionnel</label>
+					<input type="email" id="email" value="admin@zanova.com" placeholder="nom@zanova.com">
+				</div>
+
+				<div class="input-group">
+					<label>Mot de passe</label>
+					<input type="password" id="password" value="admin123" placeholder="••••••••">
+				</div>
+
+				<button id="btn-login" class="btn-glow">
+					<i class="fas fa-sign-in-alt"></i>
+					<span>Accéder à la plateforme</span>
+				</button>
+			</div>
+			<div class="auth-footer">
+				<button onclick="App.toggleTheme()" class="btn-theme-minimal">
+					<i class="fas fa-palette"></i>
+					Changer de mode</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Dashboard Principal -->
+	<div
+		id="main-dashboard" class="screen hidden">
+		<!-- Overlay pour menu mobile -->
+		<div id="sidebar-overlay" class="sidebar-overlay" onclick="App.toggleMobileSidebar()"></div>
+
+		<aside id="sidebar" class="sidebar">
+			<div class="sidebar-header">
+				<div class="logo-mini">Z</div>
+				<h2 class="sidebar-label">Zanova</h2>
+				<button id="sidebar-toggle" class="btn-collapse">◀</button>
+			</div>
+
+			<nav class="sidebar-nav">
+				<a href="#" class="nav-item active" onclick="App.switchView('dashboard')">
+					<i class="fas fa-chart-line icon"></i>
+					<span class="sidebar-label">Tableau de bord</span>
+				</a>
+				<a href="#" class="nav-item" onclick="App.switchView('statistics')">
+					<i class="fas fa-chart-bar icon"></i>
+					<span class="sidebar-label">Statistiques</span>
+				</a>
+				<a href="#" class="nav-item" onclick="App.switchView('campaigns')">
+					<i class="fas fa-bullseye icon"></i>
+					<span class="sidebar-label">Campagnes</span>
+				</a>
+				<a href="#" class="nav-item" onclick="App.switchView('contacts')">
+					<i class="fas fa-users icon"></i>
+					<span class="sidebar-label">Répertoire Contacts</span>
+				</a>
+				<a href="#" class="nav-item" onclick="App.switchView('users')">
+					<i class="fas fa-shield-alt icon"></i>
+					<span class="sidebar-label">Équipe & Accès</span>
+				</a>
+			</nav>
+
+			<div class="sidebar-footer">
+				<div class="user-info sidebar-label">
+					<p id="user-name">Chargement...</p>
+					<span id="user-role" class="badge">Role</span>
+				</div>
+				<div style="display: flex; flex-direction: column; gap: 8px;">
+					<div id="mode-indicator" class="mode-indicator" style="display: none;">
+						<i class="fas fa-circle"></i>
+						<span id="mode-text">Mode Admin</span>
+					</div>
+					<div style="display: flex; gap: 8px;">
+						<button id="btn-switch-role" class="btn-icon" title="Basculer Agent/Admin" onclick="App.switchUserRole()" style="display: none;">
+							<i class="fas fa-exchange-alt"></i>
+						</button>
+						<button id="btn-logout" class="btn-icon" title="Déconnexion">
+							<i class="fas fa-sign-out-alt"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		</aside>
+
+		<main class="content-area">
+			<header class="top-header">
+				<div class="header-left">
+					<button id="mobile-menu-toggle" class="btn-mobile">
+						<i class="fas fa-bars"></i>
+					</button>
+					<h2 id="page-title">Tableau de Bord</h2>
+				</div>
+				<div class="top-actions">
+					<button onclick="App.toggleTheme()" class="btn-icon-alt" title="Mode Sombre/Clair">
+						<i class="fas fa-adjust"></i>
+					</button>
+					<div class="status-box">
+						<span class="status-indicator"></span>
+						<span class="res-hide">Serveur Opérationnel</span>
+					</div>
+				</div>
+			</header>
+
+			<div
+				id="view-container" class="view-content">
+				<!-- Vue Overview - Dashboard Agent -->
+				<div
+					id="agent-overview-view" class="view hidden">
+					<!-- Mes Performances d'Agent -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-blue-100 dark:bg-blue-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-phone text-blue-600 dark:text-blue-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+											<i class="fas fa-arrow-up text-xs me-1"></i>Aujourd'hui
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Mes Appels</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-calls">0</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-calls-progress">0% de l'objectif</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600" id="agent-calls-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-green-100 dark:bg-green-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-clock text-green-600 dark:text-green-400 text-xl"></i>
+										</div>
+										<span class="badge bg-info-subtle text-info dark:bg-info-dark dark:text-info-light rounded-pill px-3 py-1">
+											<i class="fas fa-chart-line text-xs me-1"></i>Moyenne
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Durée Moyenne</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-duration">0s</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-duration-status">Dans la norme</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-green-500 to-green-600" id="agent-duration-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-purple-100 dark:bg-purple-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-percentage text-purple-600 dark:text-purple-400 text-xl"></i>
+										</div>
+										<span class="badge bg-warning-subtle text-warning dark:bg-warning-dark dark:text-warning-light rounded-pill px-3 py-1">
+											<i class="fas fa-trophy text-xs me-1"></i>Qualité
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Taux Qualification</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-qualification">0%</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-qualification-status">En attente</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-purple-500 to-purple-600" id="agent-qualification-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-emerald-100 dark:bg-emerald-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-star text-emerald-600 dark:text-emerald-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+											<i class="fas fa-medal text-xs me-1"></i>Classement
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Mon Score</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-score">0</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-score-rank">Top 10</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-emerald-500 to-emerald-600" id="agent-score-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Mes Campagnes et Activité -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-8">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-bullseye text-primary me-2"></i>Mes Campagnes Actives
+										</h5>
+										<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshAgentCampaigns()">
+											<i class="fas fa-sync-alt"></i>
+										</button>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="agent-campaigns" class="campaign-grid"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-4">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-phone-alt text-success me-2"></i>Prochain Appel
+										</h5>
+										<span class="badge bg-success rounded-pill animate-pulse">
+											<i class="fas fa-circle text-xs me-1"></i>Prêt
+										</span>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div id="next-call" class="next-call-info">
+										<div class="text-center py-3">
+											<i class="fas fa-phone-volume text-4xl text-primary mb-3"></i>
+											<h6 class="fw-bold text-gray-800 dark:text-gray-100">Prêt à appeler</h6>
+											<p class="text-gray-500 dark:text-gray-400 small mb-3">Cliquez pour lancer le prochain appel</p>
+											<button class="btn-glow w-100" onclick="App.launchNextCall()">
+												<i class="fas fa-phone"></i>
+												Lancer l'appel
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Activité Récente et Alertes -->
+					<div class="row g-4">
+						<div class="col-xl-8">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-history text-info me-2"></i>Mon Activité Récente
+										</h5>
+										<div class="btn-group btn-group-sm" role="group">
+											<button type="button" class="btn btn-outline-primary active" onclick="App.filterAgentActivity('all')">Tout</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('calls')">Appels</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('qualifications')">Qualifications</button>
+										</div>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="agent-activity-log" class="activity-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-4">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-exclamation-triangle text-warning me-2"></i>Alertes
+										</h5>
+										<span class="badge bg-warning rounded-pill" id="alert-count">0</span>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="agent-alerts" class="alert-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Vue Overview - Dashboard Superviseur -->
+				<div
+					id="supervisor-overview-view" class="view hidden">
+					<!-- Supervision en Temps Réel -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-8">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-satellite-dish text-danger me-2 animate-pulse"></i>Supervision Temps Réel
+										</h5>
+										<div class="d-flex align-items-center">
+											<span class="badge bg-success rounded-pill me-2">
+												<i class="fas fa-circle text-xs me-1"></i>Live
+											</span>
+											<button class="btn btn-sm btn-outline-secondary rounded-lg" onclick="App.refreshSupervision()">
+												<i class="fas fa-sync-alt"></i>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="supervisor-realtime" class="supervision-grid" style="max-height: 400px; overflow-y: auto;"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-4">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-exclamation-triangle text-warning me-2"></i>Alertes Actives
+										</h5>
+										<span class="badge bg-warning rounded-pill" id="supervisor-alert-count">0</span>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="supervisor-alerts" class="alert-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Performance des Agents et Qualité -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-trophy text-warning me-2"></i>Top Performers Agents
+										</h5>
+										<select class="form-select form-select-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg" onchange="App.updateSupervisorRanking(this.value)" style="width: auto;">
+											<option value="calls">Par appels</option>
+											<option value="duration">Par durée</option>
+											<option value="qualification">Par qualification</option>
+											<option value="quality">Par qualité</option>
+										</select>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="supervisor-top-agents" class="ranking-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-chart-line text-info me-2"></i>Qualification des Appels
+										</h5>
+										<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshQualificationStats()">
+											<i class="fas fa-sync-alt"></i>
+										</button>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<canvas id="qualification-chart" width="400" height="200"></canvas>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Campagnes Supervisées -->
+					<div class="row g-4">
+						<div class="col-12">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-bullseye text-primary me-2"></i>Mes Campagnes Supervisées
+										</h5>
+										<div class="btn-group btn-group-sm" role="group">
+											<button type="button" class="btn btn-outline-primary active" onclick="App.filterSupervisorCampaigns('all')">Toutes</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterSupervisorCampaigns('active')">Actives</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterSupervisorCampaigns('alert')">Alertes</button>
+										</div>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="supervisor-campaigns" class="campaign-grid"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Vue Overview - Dashboard Responsable -->
+				<div
+					id="overview-view" class="view">
+					<!-- KPIs Principaux avec Bootstrap Grid -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-blue-100 dark:bg-blue-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-chart-line text-blue-600 dark:text-blue-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+											<i class="fas fa-arrow-up text-xs me-1"></i>+12%
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Campagnes Actives</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-campaigns">0</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="campaigns-progress">0% de progression</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600" id="campaigns-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-green-100 dark:bg-green-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-users text-green-600 dark:text-green-400 text-xl"></i>
+										</div>
+										<span class="badge bg-info-subtle text-info dark:bg-info-dark dark:text-info-light rounded-pill px-3 py-1">
+											<i class="fas fa-circle text-success text-xs me-1"></i>Live
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Agents Connectés</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-agents">0</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agents-status">0 en appel / 0 disponible</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-green-500 to-green-600" id="agents-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-purple-100 dark:bg-purple-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-phone text-purple-600 dark:text-purple-400 text-xl"></i>
+										</div>
+										<span class="badge bg-warning-subtle text-warning dark:bg-warning-dark dark:text-warning-light rounded-pill px-3 py-1">
+											<i class="fas fa-clock text-xs me-1"></i>Aujourd'hui
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Total Appels Jour</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-calls">0</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="calls-duration">Durée moyenne: 0s</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-purple-500 to-purple-600" id="calls-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-emerald-100 dark:bg-emerald-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+											<i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+											<i class="fas fa-arrow-trend-up text-xs me-1"></i>Excellent
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Taux Qualification</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-qualification">0%</h3>
+									<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="qualification-trend">
+										<i class="fas fa-minus text-xs me-1"></i>Stable</p>
+								</div>
+								<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+									<div class="progress-bar bg-gradient-to-r from-emerald-500 to-emerald-600" id="qualification-progress-bar" style="width: 0%"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Performance des Agents et Supervision -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-trophy text-warning me-2"></i>Top Performers Agents
+										</h5>
+										<select class="form-select form-select-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg" onchange="App.updateAgentRanking(this.value)" style="width: auto;">
+											<option value="calls">Par appels</option>
+											<option value="duration">Par durée</option>
+											<option value="qualification">Par qualification</option>
+										</select>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="top-agents" class="ranking-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-satellite-dish text-danger me-2 animate-pulse"></i>Supervision Temps Réel
+										</h5>
+										<div class="d-flex align-items-center">
+											<span class="badge bg-success rounded-pill me-2">
+												<i class="fas fa-circle text-xs me-1"></i>Live
+											</span>
+											<button class="btn btn-sm btn-outline-secondary rounded-lg" onclick="App.refreshSupervision()">
+												<i class="fas fa-sync-alt"></i>
+											</button>
+										</div>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="realtime-supervision" class="supervision-grid" style="max-height: 300px; overflow-y: auto;"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Activité et Campagnes -->
+					<div class="row g-4">
+						<div class="col-xl-8">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-chart-line text-info me-2"></i>Activité Récente
+										</h5>
+										<div class="btn-group btn-group-sm" role="group">
+											<button type="button" class="btn btn-outline-primary active" onclick="App.filterActivity('all')">Tout</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterActivity('calls')">Appels</button>
+											<button type="button" class="btn btn-outline-primary" onclick="App.filterActivity('qualifications')">Qualifications</button>
+										</div>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="activity-log" class="activity-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-4">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<div class="d-flex align-items-center justify-content-between">
+										<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+											<i class="fas fa-bullseye text-primary me-2"></i>Campagnes en Cours
+										</h5>
+										<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshCampaigns()">
+											<i class="fas fa-sync-alt"></i>
+										</button>
+									</div>
+								</div>
+								<div class="card-body p-4">
+									<div
+										id="active-campaigns" class="campaign-list"><!-- Sera rempli par JavaScript -->
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Vue Statistiques -->
+				<div
+					id="statistics-view" class="view hidden">
+					<!-- En-tête avec contrôles -->
+					<div class="row g-4 mb-4">
+						<div class="col-md-8">
+							<h2 class="h3 fw-bold text-gray-800 dark:text-gray-100 mb-3">
+								<i class="fas fa-chart-bar text-primary me-2"></i>Statistiques & Analyse
+							</h2>
+						</div>
+						<div class="col-md-4">
+							<div class="d-flex gap-2">
+								<select id="time-filter" class="form-select bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300">
+									<option value="today">Aujourd'hui</option>
+									<option value="week" selected>Cette semaine</option>
+									<option value="month">Ce mois</option>
+									<option value="custom">Personnalisé</option>
+								</select>
+								<button class="btn btn-primary" onclick="App.refreshStatistics()">
+									<i class="fas fa-sync-alt"></i>
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Filtre personnalisé (masqué par défaut) -->
+					<div id="custom-date-filter" class="row g-3 mb-4 hidden">
+						<div class="col-md-5">
+							<label class="form-label text-gray-600 dark:text-gray-400 small">Date de début</label>
+							<input type="date" id="start-date" class="form-control bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+						</div>
+						<div class="col-md-5">
+							<label class="form-label text-gray-600 dark:text-gray-400 small">Date de fin</label>
+							<input type="date" id="end-date" class="form-control bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+						</div>
+						<div class="col-md-2 d-flex align-items-end">
+							<button class="btn btn-success w-100" onclick="App.applyCustomDateFilter()">
+								<i class="fas fa-check"></i>
+								Appliquer
+							</button>
+						</div>
+					</div>
+
+					<!-- KPIs Principaux -->
+					<div class="row g-4 mb-4">
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-blue-100 dark:bg-blue-900 rounded-xl p-3">
+											<i class="fas fa-phone-volume text-blue-600 dark:text-blue-400 text-xl"></i>
+										</div>
+										<span class="badge bg-info-subtle text-info rounded-pill">
+											<i class="fas fa-arrow-up text-xs me-1"></i>+8%
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Total Appels</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-total-calls">0</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-green-100 dark:bg-green-900 rounded-xl p-3">
+											<i class="fas fa-clock text-green-600 dark:text-green-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success rounded-pill">
+											<i class="fas fa-arrow-down text-xs me-1"></i>-12s
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Durée Moyenne</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-avg-duration">0s</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-purple-100 dark:bg-purple-900 rounded-xl p-3">
+											<i class="fas fa-percentage text-purple-600 dark:text-purple-400 text-xl"></i>
+										</div>
+										<span class="badge bg-warning-subtle text-warning rounded-pill">
+											<i class="fas fa-arrow-trend-up text-xs me-1"></i>+5%
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Taux de Conversion</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-conversion">0%</h3>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-xl-3 col-lg-6">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-body p-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div class="icon-box bg-emerald-100 dark:bg-emerald-900 rounded-xl p-3">
+											<i class="fas fa-trophy text-emerald-600 dark:text-emerald-400 text-xl"></i>
+										</div>
+										<span class="badge bg-success-subtle text-success rounded-pill">
+											<i class="fas fa-star text-xs me-1"></i>Top
+										</span>
+									</div>
+									<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Score Qualité</h6>
+									<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-quality">0/100</h3>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Graphiques principaux -->
+					<div
+						class="row g-4 mb-4">
+						<!-- Graphique des appels par jour -->
+						<div class="col-xl-8">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+										<i class="fas fa-chart-line text-info me-2"></i>Évolution des Appels
+									</h5>
+								</div>
+								<div class="card-body p-4">
+									<canvas id="calls-chart" width="400" height="200"></canvas>
+								</div>
+							</div>
+						</div>
+
+						<!-- Répartition par statut -->
+						<div class="col-xl-4">
+							<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+								<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+									<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+										<i class="fas fa-chart-pie text-warning me-2"></i>Répartition des Appels
+									</h5>
+								</div>
+								<div class="card-body p-4">
+									<canvas id="status-chart" width="200" height="200"></canvas>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Tableaux de détails selon le rôle -->
+					<div
+						id="role-specific-stats"><!-- Contenu dynamique selon le rôle -->
+					</div>
+				</div>
+				<div id="campaigns-view" class="view hidden">
+					<div class="view-header-flex">
+						<div class="title-group">
+							<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Gestion des Campagnes</h2>
+							<p style="color: var(--text-dim); margin: 5px 0 0 0;">Pilotez et optimisez vos opérations d'appels</p>
+						</div>
+						<button onclick="UI.showCampaignModal()" class="btn-glow">
+							<i class="fas fa-plus"></i>
+							Lancer une campagne
+						</button>
+					</div>
+
+					<div class="panel" style="margin-top: 2.5rem;">
+						<div class="table-container">
+							<table class="data-table">
+								<thead>
+									<tr>
+										<th>Campagne</th>
+										<th>Période</th>
+										<th>Responsable</th>
+										<th>Contacts</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody id="campaign-list-body"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<!-- Vue Contacts -->
+				<div id="contacts-view" class="view hidden">
+					<div class="view-header-flex">
+						<div class="title-group">
+							<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Répertoire Global</h2>
+							<p style="color: var(--text-dim); margin: 5px 0 0 0;">Visualisez l'ensemble de vos contacts prospectés</p>
+						</div>
+					</div>
+
+					<div class="dashboard-panels" style="margin-top: 2rem;">
+						<div class="panel">
+							<div class="panel-header">
+								<h3>Liste des Contacts</h3>
+								<div id="contact-actions-area"></div>
+							</div>
+							<div class="table-container">
+								<table class="data-table">
+									<thead>
+										<tr>
+											<th>Contact</th>
+											<th>Coordonnées</th>
+											<th>Source</th>
+											<th>Statut</th>
+										</tr>
+									</thead>
+									<tbody id="contact-list-body">
+										<tr>
+											<td colspan="4" style="text-align:center; padding:3rem; color:var(--text-dim);">Veuillez sélectionner une campagne à gauche.</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div class="panel">
+							<div class="panel-header">
+								<h3>Campagnes</h3>
+							</div>
+							<div
+								id="contact-campaign-selector" style="display:flex; flex-direction:column; gap:8px;"><!-- Rempli par JS -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Vue Équipe -->
+				<div id="users-view" class="view hidden">
+					<div class="view-header-flex">
+						<div class="title-group">
+							<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Gestion d'Équipe</h2>
+							<p style="color: var(--text-dim); margin: 5px 0 0 0;">Gérez vos agents et superviseurs</p>
+						</div>
+						<button onclick="UI.showUserModal()" class="btn-glow">
+							<i class="fas fa-user-plus"></i>
+							Ajouter un membre
+						</button>
+					</div>
+
+					<div class="panel" style="margin-top: 2.5rem;">
+						<div class="table-container">
+							<table class="data-table">
+								<thead>
+									<tr>
+										<th>Membre</th>
+										<th>Email</th>
+										<th>Rôle</th>
+										<th>Statut</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody id="user-list-body"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Modal Generic -->
+			<div id="modal-container" class="modal-overlay hidden">
+				<div class="modal-card">
+					<div class="modal-header">
+						<h3 id="modal-title">Formulaire</h3>
+						<button onclick="UI.closeModal()" class="btn-close">×</button>
+					</div>
+					<div id="modal-body" class="modal-content"></div>
+					<div class="modal-footer">
+						<button id="modal-save" class="btn-glow">
+							<i class="fas fa-save"></i>
+							Enregistrer</button>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<style>
+	.view-header-flex {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
+	.btn-glow.small {
+		width: auto;
+		padding: 0.6rem 1.2rem;
+		font-size: 0.85rem;
+	}
+
+	/* TABLES */
+	.table-container {
+		overflow-x: auto;
+		margin-top: 1rem;
+	}
+	.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+	}
+	.data-table th {
+		color: var(--text-dim);
+		font-size: 0.8rem;
+		text-transform: uppercase;
+		padding: 1rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.data-table td {
+		padding: 1rem;
+		border-bottom: 1px solid var(--border);
+		font-size: 0.9rem;
+	}
+	.data-table tr:hover {
+		background: var(--glass);
+	}
+
+	.action-btns {
+		display: flex;
+		gap: 8px;
+	}
+	.btn-action {
+		background: var(--glass);
+		border: 1px solid var(--border);
+		color: var(--text-main);
+		padding: 4px 8px;
+		border-radius: 6px;
+		cursor: pointer;
+		font-size: 0.8rem;
+	}
+	.btn-action.delete {
+		color: var(--danger);
+	}
+	.btn-action.delete:hover {
+		background: var(--danger);
+		color: white;
+	}
+
+	/* MODAL PREMIUM REDESIGN */
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(8, 11, 20, 0.85);
+		z-index: 2000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		backdrop-filter: blur(12px);
+		padding: 20px;
+	}
+	.modal-card {
+		background: var(--bg-surface);
+		width: 100%;
+		max-width: 650px; /* Plus large */
+		border-radius: 28px;
+		border: 1px solid var(--border);
+		box-shadow: 0 40px 80px -20px var(--shadow);
+		overflow: hidden;
+		animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	@keyframes modalSlideUp {
+		from {
+			transform: translateY(30px);
+			opacity: 0;
+		}
+		to {
+			transform: translateY(0);
+			opacity: 1;
+		}
+	}
+	.modal-header {
+		padding: 2rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background: linear-gradient(to bottom, var(--glass), transparent);
+		border-bottom: 1px solid var(--border);
+	}
+	.modal-header h3 {
+		font-family: 'Outfit';
+		font-size: 1.5rem;
+		margin: 0;
+	}
+	.modal-content {
+		padding: 2.5rem;
+	}
+	.btn-close {
+		background: var(--glass);
+		border: 1px solid var(--border);
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		font-size: 1.2rem;
+		color: var(--text-dim);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: 0.2s;
+	}
+	.btn-close:hover {
+		background: var(--danger);
+		color: white;
+		border-color: var(--danger);
+	}
+	.modal-footer {
+		padding: 1.5rem 2.5rem;
+		display: flex;
+		justify-content: flex-end;
+		gap: 1rem;
+		background: var(--glass);
+		border-top: 1px solid var(--border);
+	}
+
+	/* FORM STYLING IN MODAL */
+	.modal-content .input-group {
+		margin-bottom: 2rem;
+	}
+	.modal-content label {
+		display: block;
+		font-weight: 700;
+		color: var(--text-main);
+		font-size: 0.85rem;
+		margin-bottom: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+	.modal-content input,
+	.modal-content textarea {
+		width: 100%;
+		background: var(--bg-app);
+		border: 1px solid var(--border);
+		padding: 1.25rem 1.5rem;
+		font-size: 1.05rem;
+		border-radius: 16px;
+		color: var(--text-main);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-sizing: border-box;
+	}
+	.modal-content input:focus,
+	.modal-content textarea:focus {
+		outline: none;
+		border-color: var(--primary);
+		background: var(--bg-surface);
+		box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15);
+		transform: translateY(-2px);
+	}
+	.modal-content textarea {
+		min-height: 140px;
+		resize: none;
+		line-height: 1.6;
+	}
+
+	.modal-select {
+		width: 100%;
+		background: var(--bg-app);
+		border: 1px solid var(--border);
+		padding: 1.25rem 1.5rem;
+		font-size: 1.05rem;
+		border-radius: 16px;
+		color: var(--text-main);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		box-sizing: border-box;
+		appearance: none;
+		background-image: url("data:image/svg+xml, %3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 1.5rem center;
+		background-size: 1.5rem;
+	}
+	.modal-select:focus {
+		outline: none;
+		border-color: var(--primary);
+		box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.15);
+	}
+
+	.animate-fade-in {
+		animation: fadeIn 0.4s ease-out;
+	}
+	.modal-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+	}
+	@media(max-width: 600px) {
+		.modal-grid {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+	}
+
+	.btn-modal-save {
+		background: var(--primary);
+		color: white;
+		border: none;
+		padding: 1.25rem 2.5rem;
+		border-radius: 16px;
+		font-weight: 700;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: all 0.3s;
+		box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+	}
+	.btn-modal-save:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+		background: var(--accent);
+	}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VARIABLES THEMES HYPER-PREMIUM */:root,
+[data-theme="dark"] {
+	--bg-app: #0a0f1d; /* Midnight Blue profond au lieu du noir */
+	--bg-surface: #12192b;
+	--bg-card: rgba(30, 41, 59, 0.5);
+	--sidebar-bg: rgba(15, 23, 42, 0.9);
+	--text-main: #f1f5f9;
+	--text-dim: #94a3b8;
+	--border: rgba(255, 255, 255, 0.08);
+	--primary: #3b82f6;
+	--primary-glow: rgba(59, 130, 246, 0.3);
+	--accent: #6366f1;
+	--danger: #ef4444;
+	--success: #10b981;
+	--glass: rgba(255, 255, 255, 0.03);
+	--glass-border: rgba(255, 255, 255, 0.1);
+	--shadow: rgba(2, 6, 23, 0.5);
+	--grad-main: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+}
+
+[data-theme="light"] {
+	--bg-app: #f1f5f9;
+	--bg-surface: #ffffff;
+	--bg-card: rgba(255, 255, 255, 0.8);
+	--sidebar-bg: #ffffff;
+	--text-main: #0f172a;
+	--text-dim: #64748b;
+	--border: rgba(0, 0, 0, 0.05);
+	--primary: #2563eb;
+	--primary-glow: rgba(37, 99, 235, 0.2);
+	--accent: #4f46e5;
+	--danger: #dc2626;
+	--success: #16a34a;
+	--glass: rgba(0, 0, 0, 0.02);
+	--glass-border: rgba(0, 0, 0, 0.05);
+	--shadow: rgba(0, 0, 0, 0.05);
+	--grad-main: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+}
+
+html {
+	transition: background 0.3s ease;
+}
+
+/* GLOBAL */
+body {
+	margin: 0;
+	background: var(--bg-app);
+	color: var(--text-main);
+	font-family: 'Inter', sans-serif;
+	transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	height: 100vh;
+	overflow: hidden;
+	display: flex;
+}
+
+.screen {
+	height: 100vh;
+	width: 100vw;
+	display: flex;
+	position: relative;
+}
+.hidden {
+	display: none !important;
+}
+
+/* SIDEBAR GLASSMORPHISM */
+.sidebar {
+	width: 280px;
+	background: var(--sidebar-bg);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border-right: 1px solid var(--border);
+	display: flex;
+	flex-direction: column;
+	padding: 2rem 1.5rem;
+	transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	position: relative;
+	z-index: 100;
+}
+.sidebar.collapsed {
+	width: 90px;
+	padding: 2rem 1rem;
+}
+.sidebar.collapsed .sidebar-label {
+	display: none;
+}
+
+.sidebar-header {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 3.5rem;
+	padding-left: 0.5rem;
+}
+.logo-mini {
+	width: 44px;
+	height: 44px;
+	background: var(--grad-main);
+	border-radius: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	color: white;
+	flex-shrink: 0;
+	font-family: 'Outfit';
+	box-shadow: 0 8px 16px var(--primary-glow);
+}
+.btn-collapse {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	color: var(--text-dim);
+	border-radius: 8px;
+	cursor: pointer;
+	padding: 5px 9px;
+	font-size: 0.75rem;
+	transition: 0.2s;
+}
+.btn-collapse:hover {
+	color: var(--text-main);
+	border-color: var(--primary);
+}
+
+.sidebar-nav {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+.nav-item {
+	display: flex;
+	align-items: center;
+	padding: 1rem 1.25rem;
+	border-radius: 16px;
+	color: var(--text-dim);
+	text-decoration: none;
+	transition: all 0.3s ease;
+	font-family: 'Outfit';
+	font-weight: 500;
+	letter-spacing: 0.2px;
+}
+.nav-item:hover {
+	background: var(--glass);
+	color: var(--text-main);
+	transform: translateX(5px);
+}
+.nav-item.active {
+	background: var(--grad-main);
+	color: white;
+	box-shadow: 0 10px 20px -5px var(--primary-glow);
+}
+.nav-item .icon {
+	font-size: 1.4rem;
+	margin-right: 1.25rem;
+	min-width: 28px;
+	text-align: center;
+}
+.sidebar.collapsed .nav-item {
+	justify-content: center;
+	padding: 1.2rem;
+}
+.sidebar.collapsed .nav-item .icon {
+	margin-right: 0;
+}
+
+.sidebar-footer {
+	padding-top: 1.5rem;
+	border-top: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+.user-avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	background: var(--glass);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--border);
+}
+.user-info p {
+	font-size: 0.95rem;
+	font-weight: 700;
+	margin: 0;
+	font-family: 'Outfit';
+}
+
+/* BADGES DISCRETS & CLASS */
+.badge {
+	font-size: 0.7rem;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	display: inline-flex;
+	align-items: center;
+	border: 1px solid transparent;
+	backdrop-filter: blur(4px);
+}
+.badge-primary {
+	background: rgba(59, 130, 246, 0.1);
+	color: #60a5fa;
+	border-color: rgba(59, 130, 246, 0.2);
+}
+.badge-success {
+	background: rgba(16, 185, 129, 0.1);
+	color: #34d399;
+	border-color: rgba(16, 185, 129, 0.2);
+}
+.badge-admin {
+	background: rgba(99, 102, 241, 0.1);
+	color: #818cf8;
+	border-color: rgba(99, 102, 241, 0.2);
+}
+.badge-danger {
+	background: rgba(239, 68, 68, 0.1);
+	color: #f87171;
+	border-color: rgba(239, 68, 68, 0.2);
+}
+.badge-neutral {
+	background: var(--glass);
+	color: var(--text-dim);
+	border-color: var(--border);
+}
+
+/* CONTENT AREA LUXE */
+.content-area {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	background: var(--bg-app);
+	position: relative;
+}
+.content-area::before {
+	content: '';
+	position: absolute;
+	top: -10%;
+	right: -10%;
+	width: 40%;
+	height: 40%;
+	background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+	opacity: 0.4;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.top-header {
+	padding: 1.5rem 3rem;
+	background: rgba(var(--bg-surface-rgb), 0.8);
+	backdrop-filter: blur(15px);
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	position: sticky;
+	top: 0;
+	z-index: 50;
+}
+.header-left h2 {
+	font-family: 'Outfit';
+	font-weight: 800;
+	font-size: 1.75rem;
+	margin: 0;
+	letter-spacing: -0.02em;
+}
+.top-actions {
+	display: flex;
+	gap: 1.5rem;
+	align-items: center;
+}
+.status-box {
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.status-indicator {
+	width: 8px;
+	height: 8px;
+	background: var(--success);
+	border-radius: 50%;
+	box-shadow: 0 0 8px var(--success);
+}
+
+.view-content {
+	padding: 3rem;
+	max-width: 1600px;
+	margin: 0 auto;
+	width: 100%;
+	box-sizing: border-box;
+	position: relative;
+	z-index: 1;
+}
+
+/* GRIDS & CARDS LOURDS */
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 2rem;
+	margin-bottom: 3rem;
+}
+.stat-card {
+	background: var(--bg-card);
+	padding: 2rem;
+	border-radius: 24px;
+	border: 1px solid var(--glass-border);
+	backdrop-filter: blur(10px);
+	box-shadow: 0 20px 40px var(--shadow);
+	transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.stat-card:hover {
+	transform: translateY(-8px);
+	border-color: var(--primary);
+}
+.stat-card label {
+	font-size: 0.85rem;
+	color: var(--text-dim);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-weight: 700;
+}
+.stat-card h3 {
+	font-size: 2.5rem;
+	margin: 10px 0 0;
+	font-family: 'Outfit';
+	font-weight: 800;
+	background: var(--grad-main);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.dashboard-panels {
+	display: grid;
+	grid-template-columns: 1.8fr 1fr;
+	gap: 2rem;
+}
+.panel {
+	background: var(--bg-card);
+	padding: 2rem;
+	border-radius: 24px;
+	border: 1px solid var(--glass-border);
+	backdrop-filter: blur(10px);
+	box-shadow: 0 15px 30px var(--shadow);
+}
+.panel-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 2rem;
+	border-bottom: 1px solid var(--border);
+	padding-bottom: 1rem;
+}
+.panel-header h3 {
+	font-family: 'Outfit';
+	font-size: 1.25rem;
+	margin: 0;
+	font-weight: 700;
+}
+
+/* TABLES LUXE */
+.table-container {
+	overflow-x: auto;
+}
+.data-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0 10px;
+	text-align: left;
+}
+.data-table th {
+	color: var(--text-dim);
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	padding: 0.5rem 1.5rem;
+	font-weight: 800;
+	letter-spacing: 1px;
+}
+.data-table td {
+	padding: 1.5rem;
+	background: var(--glass);
+	font-size: 0.95rem;
+	transition: 0.2s;
+	border-bottom: 1px solid transparent;
+}
+.data-table tr td:first-child {
+	border-radius: 16px 0 0 16px;
+	font-weight: 600;
+}
+.data-table tr td:last-child {
+	border-radius: 0 16px 16px 0;
+}
+.data-table tr:hover td {
+	background: rgba(59, 130, 246, 0.1);
+	border-color: var(--border);
+	cursor: default;
+}
+
+/* BUTTONS EVOLVED */
+.btn-glow {
+	background: var(--grad-main);
+	color: white;
+	font-weight: 700;
+	padding: 1rem 1.75rem;
+	border-radius: 16px;
+	border: none;
+	cursor: pointer;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	font-family: 'Outfit';
+	box-shadow: 0 10px 20px -5px var(--primary-glow);
+}
+.btn-glow:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 15px 30px -10px var(--primary-glow);
+}
+.btn-glow svg {
+	width: 20px;
+	height: 20px;
+}
+
+.btn-icon-alt {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	color: var(--text-main);
+	padding: 12px;
+	border-radius: 14px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+.btn-icon-alt:hover {
+	background: var(--border);
+	transform: scale(1.1);
+}
+
+/* ACTIVITIES & ALERTS */
+.activity-item {
+	padding: 1.25rem;
+	border-radius: 16px;
+	background: var(--glass);
+	margin-bottom: 0.75rem;
+	display: flex;
+	gap: 1.25rem;
+	align-items: center;
+	border: 1px solid transparent;
+	transition: 0.3s;
+}
+.activity-item:hover {
+	border-color: var(--border);
+	background: var(--bg-app);
+}
+/* DASHBOARD RESPONSABLE - STYLES COMPLÉMENTAIRES */
+
+/* Stat Cards Enhanced */
+.stat-detail {
+	margin-top: 0.5rem;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	opacity: 0.8;
+}
+
+/* Ranking System */
+.ranking-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.ranking-item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem;
+	background: var(--glass);
+	border-radius: 16px;
+	border: 1px solid var(--border);
+	transition: all 0.3s ease;
+}
+.ranking-item:hover {
+	background: rgba(59, 130, 246, 0.05);
+	border-color: var(--primary);
+	transform: translateX(5px);
+}
+.rank-badge {
+	width: 40px;
+	height: 40px;
+	background: var(--grad-main);
+	color: white;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-family: 'Outfit';
+	font-size: 1.1rem;
+	box-shadow: 0 4px 12px var(--primary-glow);
+}
+.agent-info {
+	flex: 1;
+}
+.agent-name {
+	font-weight: 700;
+	font-family: 'Outfit';
+	color: var(--text-main);
+	margin-bottom: 0.25rem;
+}
+.agent-stats {
+	font-size: 0.85rem;
+	color: var(--text-dim);
+}
+.score {
+	font-size: 1.5rem;
+	font-weight: 800;
+	font-family: 'Outfit';
+	background: var(--grad-main);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+/* Supervision Temps Réel */
+.supervision-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	max-height: 300px;
+	overflow-y: auto;
+}
+.supervision-item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem;
+	background: var(--glass);
+	border-radius: 16px;
+	border: 1px solid var(--border);
+	transition: all 0.3s ease;
+}
+.supervision-item:hover {
+	background: var(--bg-app);
+	border-color: var(--primary);
+}
+.supervision-item.alert-long-call {
+	border-color: var(--danger);
+	background: rgba(239, 68, 68, 0.05);
+	animation: pulseAlert 2s infinite;
+}
+@keyframes pulseAlert {
+	0,
+	100% {
+		box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+	}
+	50% {
+		box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+	}
+}
+.agent-avatar {
+	width: 40px;
+	height: 40px;
+	background: var(--grad-main);
+	color: white;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-family: 'Outfit';
+}
+.agent-status {
+	flex: 1;
+}
+.status-badge {
+	display: inline-block;
+	padding: 0.25rem 0.75rem;
+	border-radius: 20px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-top: 0.25rem;
+}
+.status-badge.available {
+	background: rgba(16, 185, 129, 0.1);
+	color: #34d399;
+	border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.status-badge.in-call {
+	background: rgba(59, 130, 246, 0.1);
+	color: #60a5fa;
+	border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.call-info {
+	text-align: right;
+}
+.call-duration {
+	display: block;
+	font-weight: 700;
+	font-family: 'Outfit';
+	color: var(--text-main);
+}
+.call-duration.warning {
+	color: var(--danger);
+}
+.call-status {
+	display: block;
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	margin-top: 0.25rem;
+}
+.call-status.warning {
+	color: var(--danger);
+	font-weight: 700;
+}
+
+/* Status Indicators */
+.status-indicators {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+.status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	animation: pulse 2s infinite;
+}
+.status-dot.online {
+	background: var(--success);
+	box-shadow: 0 0 8px var(--success);
+}
+.status-text {
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	font-weight: 700;
+}
+
+/* Activity Filters */
+.activity-filters {
+	display: flex;
+	gap: 0.5rem;
+}
+.filter-btn {
+	padding: 0.5rem 1rem;
+	background: var(--glass);
+	border: 1px solid var(--border);
+	border-radius: 20px;
+	color: var(--text-dim);
+	font-size: 0.8rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+.filter-btn:hover {
+	background: var(--bg-app);
+	color: var(--text-main);
+}
+.filter-btn.active {
+	background: var(--grad-main);
+	color: white;
+	border-color: transparent;
+}
+
+/* Activity Items Enhanced */
+.activity-item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	padding: 1rem;
+	border-radius: 16px;
+	background: var(--glass);
+	margin-bottom: 0.75rem;
+	border: 1px solid transparent;
+	transition: all 0.3s ease;
+}
+.activity-item:hover {
+	border-color: var(--border);
+	background: var(--bg-app);
+}
+.activity-item.alert-item {
+	border-color: var(--danger);
+	background: rgba(239, 68, 68, 0.05);
+}
+.activity-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+	flex-shrink: 0;
+}
+.activity-icon.call {
+	background: rgba(59, 130, 246, 0.1);
+}
+.activity-icon.qualification {
+	background: rgba(16, 185, 129, 0.1);
+}
+.activity-icon.alert {
+	background: rgba(239, 68, 68, 0.1);
+}
+.activity-content {
+	flex: 1;
+}
+.activity-title {
+	font-weight: 700;
+	font-family: 'Outfit';
+	color: var(--text-main);
+	margin-bottom: 0.25rem;
+}
+.activity-details {
+	font-size: 0.85rem;
+	color: var(--text-dim);
+}
+.activity-time {
+	font-size: 0.8rem;
+	color: var(--text-dim);
+	font-weight: 600;
+}
+
+/* Campaign List */
+.campaign-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.campaign-item {
+	padding: 1rem;
+	background: var(--glass);
+	border-radius: 16px;
+	border: 1px solid var(--border);
+	transition: all 0.3s ease;
+}
+.campaign-item:hover {
+	background: var(--bg-app);
+	border-color: var(--primary);
+}
+.campaign-progress {
+	margin-bottom: 1rem;
+}
+.campaign-name {
+	font-weight: 700;
+	font-family: 'Outfit';
+	color: var(--text-main);
+	margin-bottom: 0.25rem;
+}
+.campaign-stats {
+	font-size: 0.85rem;
+	color: var(--text-dim);
+}
+.progress-bar {
+	height: 6px;
+	background: var(--bg-app);
+	border-radius: 3px;
+	overflow: hidden;
+}
+.progress-fill {
+	height: 100%;
+	background: var(--grad-main);
+	border-radius: 3px;
+	transition: width 0.3s ease;
+}
+
+/* Filter Select */
+.filter-select {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	color: var(--text-main);
+	padding: 0.5rem 1rem;
+	border-radius: 10px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+.filter-select:focus {
+	outline: none;
+	border-color: var(--primary);
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mini Button */
+.btn-mini {
+	background: var(--glass);
+	border: 1px solid var(--border);
+	color: var(--text-main);
+	padding: 0.5rem;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	font-size: 0.9rem;
+}
+.btn-mini:hover {
+	background: var(--border);
+	transform: rotate(180deg);
+}
+
+/* RESPONSIVE AGRESSIF */
+
+/* Mobile First - Extra Small Devices (< 576px) */
+@media(max-width: 575.98px) {
+	.sidebar {
+		position: fixed;
+		left: -280px;
+		top: 0;
+		bottom: 0;
+		width: 280px;
+		box-shadow: 20px 0 40px rgba(0, 0, 0, 0.5);
+		z-index: 9999;
+	}
+	.sidebar.mobile-open {
+		left: 0;
+	}
+	.btn-mobile {
+		display: block;
+		background: var(--glass);
+		border: 1px solid var(--border);
+		padding: 8px;
+		border-radius: 10px;
+		color: var(--text-main);
+		font-size: 1.2rem;
+		cursor: pointer;
+	}
+	.res-hide {
+		display: none;
+	}
+	.view-content {
+		padding: 1rem;
+	}
+	.top-header {
+		padding: 1rem;
+	}
+
+	/* Dashboard cards */
+	.row.g-4 > * {
+		margin-bottom: 1rem;
+	}
+
+	/* Cards mobile */
+	.card {
+		margin-bottom: 1rem;
+	}
+	.card-body {
+		padding: 1rem !important;
+	}
+
+	/* Text sizing */
+	h1 {
+		font-size: 1.5rem;
+	}
+	h2 {
+		font-size: 1.25rem;
+	}
+	h3 {
+		font-size: 1.1rem;
+	}
+	h5.card-title {
+		font-size: 0.9rem;
+	}
+
+	/* Buttons */
+	.btn-glow {
+		padding: 0.75rem 1rem;
+		font-size: 0.9rem;
+	}
+
+	/* Mode indicator */
+	.mode-indicator {
+		font-size: 0.65rem;
+		padding: 6px 10px;
+	}
+
+	/* Tables */
+	.table-responsive {
+		font-size: 0.8rem;
+	}
+	.table th,
+	.table td {
+		padding: 0.5rem;
+	}
+
+	/* Charts */
+	canvas {
+		max-height: 200px;
+	}
+
+	/* Modal mobile */
+	.modal-grid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+	.modal-content {
+		margin: 1rem;
+		max-height: 90vh;
+		overflow-y: auto;
+	}
+}
+
+/* Small Devices (576px - 767.98px) */
+@media(min-width: 576px) and(max-width: 767.98px) {
+	.sidebar {
+		position: fixed;
+		left: -280px;
+		top: 0;
+		bottom: 0;
+		width: 280px;
+		box-shadow: 20px 0 40px rgba(0, 0, 0, 0.5);
+		z-index: 9999;
+	}
+	.sidebar.mobile-open {
+		left: 0;
+	}
+	.btn-mobile {
+		display: block;
+		background: var(--glass);
+		border: 1px solid var(--border);
+		padding: 8px;
+		border-radius: 10px;
+		color: var(--text-main);
+		font-size: 1.2rem;
+		cursor: pointer;
+	}
+	.view-content {
+		padding: 1.5rem;
+	}
+	.top-header {
+		padding: 1rem 1.5rem;
+	}
+
+	/* Dashboard grid */
+	.col-xl-3 {
+		flex: 0 0 50%;
+		max-width: 50%;
+	}
+	.col-xl-6 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+}
+
+/* Medium Devices (768px - 991.98px) - Tablettes */
+@media(min-width: 768px) and(max-width: 991.98px) {
+	.sidebar {
+		width: 220px;
+	}
+	.sidebar.collapsed {
+		width: 60px;
+	}
+	.sidebar-label {
+		font-size: 0.85rem;
+	}
+	.view-content {
+		padding: 1.5rem;
+	}
+	.top-header {
+		padding: 1rem 1.5rem;
+	}
+
+	/* Dashboard grid optimisé pour tablette */
+	.col-xl-3 {
+		flex: 0 0 50%;
+		max-width: 50%;
+	}
+	.col-xl-6 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+	.col-xl-8 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+	.col-xl-4 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+	/* Cards optimisées pour tablette */
+	.card {
+		margin-bottom: 1.5rem;
+	}
+	.card-body {
+		padding: 1.25rem !important;
+		h1 {
+			font-size: 1.25rem;
+		}
+		h2 {
+			font-size: 1.1rem;
+		}
+		h3 {
+			font-size: 1rem;
+		}
+		h5.card-title {
+			font-size: 0.85rem;
+		}
+	}
+
+	/* Typography pour tablette */
+	h1 {
+		font-size: 1.25rem;
+	}
+	h2 {
+		font-size: 1.125rem;
+	}
+	h3 {
+		font-size: 1rem;
+	}
+	h5.card-title {
+		font-size: 0.85rem;
+	}
+
+	/* Buttons pour tablette */
+	.btn-glow {
+		padding: 0.875rem 1.25rem;
+		font-size: 0.95rem;
+	}
+
+	/* Mode indicator */
+	.mode-indicator {
+		font-size: 0.7rem;
+		padding: 7px 11px;
+	}
+
+	/* Tables pour tablette */
+	.table {
+		font-size: 0.85rem;
+	}
+	.table th,
+	.table td {
+		padding: 0.75rem 0.5rem;
+	}
+
+	/* Charts pour tablette */
+	canvas {
+		max-height: 250px;
+	}
+
+	/* Modal pour tablette */
+	.modal-content {
+		margin: 2rem auto;
+		max-width: 90%;
+	}
+
+	/* Supervision grid optimisé */
+	.supervision-item {
+		padding: 1rem;
+	}
+
+	/* Campaign cards pour tablette */
+	.campaign-card {
+		margin-bottom: 1rem;
+	}
+
+	/* Agent avatar */
+	.agent-avatar {
+		width: 36px;
+		height: 36px;
+		font-size: 0.9rem;
+	}
+
+	/* Ranking items */
+	.ranking-item {
+		padding: 1rem;
+	}
+
+	/* Alert items */
+	.alert-item {
+		padding: 0.75rem;
+	}
+}
+
+/* Large Devices (992px - 1199.98px) */
+@media(min-width: 992px) and(max-width: 1199.98px) {
+	.sidebar {
+		width: 240px;
+	}
+	.view-content {
+		padding: 2rem;
+	}
+
+	/* Dashboard grid adjustments */
+	.col-xl-3 {
+		flex: 0 0 50%;
+		max-width: 50%;
+	}
+}
+
+/* Extra Large Devices (1200px and up) */
+@media(min-width: 1200px) {
+	.dashboard-panels {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Tables optimisées pour mobile */
+@media(max-width: 767.98px) {
+	.table-responsive {
+		border-radius: 8px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	}
+
+	.table {
+		font-size: 0.75rem;
+		margin-bottom: 0;
+	}
+
+	.table th {
+		background: var(--glass);
+		font-weight: 600;
+		padding: 0.75rem 0.5rem;
+		white-space: nowrap;
+		font-size: 0.7rem;
+	}
+
+	.table td {
+		padding: 0.5rem;
+		vertical-align: middle;
+	}
+
+	.table .btn {
+		padding: 0.25rem 0.5rem;
+		font-size: 0.7rem;
+		margin: 0.125rem;
+	}
+
+	.table .badge {
+		font-size: 0.65rem;
+		padding: 0.25rem 0.5rem;
+	}
+
+	/* Cards pour remplacer les tableaux sur mobile */
+	.mobile-card {
+		background: var(--glass);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.mobile-card-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.75rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.mobile-card-title {
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: var(--text-main);
+	}
+
+	.mobile-card-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.mobile-card-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.25rem 0;
+	}
+
+	.mobile-card-label {
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		font-weight: 500;
+	}
+
+	.mobile-card-value {
+		font-size: 0.8rem;
+		color: var(--text-main);
+		font-weight: 600;
+	}
+
+	.mobile-card-actions {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: 0.75rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.mobile-card-actions .btn {
+		flex: 1;
+		font-size: 0.75rem;
+		padding: 0.5rem;
+	}
+}
+
+/* Overlay pour menu mobile */
+@media(max-width: 767.98px) {
+	.sidebar-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: 9998;
+		display: none;
+	}
+	.sidebar-overlay.active {
+		display: block;
+	}
+}
+
+@media(max-width: 575.98px) {
+	.table {
+		font-size: 0.7rem;
+	}
+
+	.table th {
+		padding: 0.5rem 0.25rem;
+		font-size: 0.65rem;
+	}
+
+	.table td {
+		padding: 0.25rem;
+	}
+
+	.mobile-card {
+		padding: 0.75rem;
+	}
+
+	.mobile-card-actions .btn {
+		font-size: 0.7rem;
+		padding: 0.4rem;
+	}
+}
+
+/* Typography ultra-compacte - Style exemple */
+h1 {
+	font-size: 0.875rem;
+}
+h2 {
+	font-size: 0.75rem;
+}
+h3 {
+	font-size: 0.6875rem;
+}
+h4 {
+	font-size: 0.625rem;
+}
+h5 {
+	font-size: 0.6875rem;
+}
+h6 {
+	font-size: 0.625rem;
+}
+
+/* Cards ultra-compactes - Style exemple */
+.card {
+	margin-bottom: 0.5rem;
+}
+
+.card-body {
+	padding: 0.5rem;
+}
+
+.card-header {
+	padding: 0.375rem 0.5rem;
+}
+
+/* Tableaux ultra-compacts - Style exemple */
+.table {
+	font-size: 0.625rem;
+	margin-bottom: 0;
+}
+
+.table th {
+	padding: 0.375rem 0.25rem;
+	font-size: 0.625rem;
+}
+
+.table td {
+	padding: 0.375rem 0.25rem;
+	font-size: 0.625rem;
+}
+
+/* Boutons ultra-compacts - Style exemple */
+.btn {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.625rem;
+}
+
+.btn-sm {
+	padding: 0.1875rem 0.375rem;
+	font-size: 0.625rem;
+}
+
+/* Badges ultra-compacts - Style exemple */
+.badge {
+	font-size: 0.5625rem;
+	padding: 0.125rem 0.25rem;
+}
+
+/* Espacements ultra-réduits - Style exemple */
+.mb-4 {
+	margin-bottom: 0.5rem;
+}
+.mb-3 {
+	margin-bottom: 0.375rem;
+}
+.mb-2 {
+	margin-bottom: 0.25rem;
+}
+.mb-1 {
+	margin-bottom: 0.125rem;
+}
+
+.p-4 {
+	padding: 0.5rem;
+}
+.p-3 {
+	padding: 0.375rem;
+}
+.p-2 {
+	padding: 0.25rem;
+}
+.p-1 {
+	padding: 0.125rem;
+}
+
+/* Icônes ultra-compactes - Style exemple */
+.icon-box {
+	padding: 0.25rem;
+	font-size: 0.625rem;
+}
+
+/* Containers ultra-compacts - Style exemple */
+.view-content {
+	padding: 0.5rem;
+}
+
+.row.g-4 > * {
+	margin-bottom: 0.5rem;
+}
+
+/* Mode indicator ultra-compact - Style exemple */
+.mode-indicator {
+	font-size: 0.5rem;
+	padding: 0.25rem 0.375rem;
+}
+
+/* Sidebar ultra-compacte */
+.sidebar {
+	width: 180px;
+}
+
+.sidebar-label {
+	font-size: 0.625rem;
+}
+
+/* Top header ultra-compact */
+.top-header {
+	padding: 0.5rem 0.75rem;
+}
+
+/* Mobile ultra-compact */
+@media(max-width: 768px) {
+	h1 {
+		font-size: 0.75rem;
+	}
+	h2 {
+		font-size: 0.625rem;
+	}
+	h3 {
+		font-size: 0.5625rem;
+	}
+	h4 {
+		font-size: 0.5rem;
+	}
+	h5 {
+		font-size: 0.5625rem;
+	}
+	h6 {
+		font-size: 0.5rem;
+	}
+
+	.card-body {
+		padding: 0.375rem;
+	}
+	.table {
+		font-size: 0.5rem;
+	}
+	.table th,
+	.table td {
+		padding: 0.25rem 0.125rem;
+	}
+	.btn {
+		padding: 0.1875rem 0.375rem;
+		font-size: 0.5rem;
+	}
+	.view-content {
+		padding: 0.375rem;
+	}
+	.sidebar {
+		width: 160px;
+	}
+}
+
+/* LOADER LUXE */
+.loader-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.8);
+	z-index: 10000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center; backdrop-filter: blur(12px);
+}
+.spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid var(--glass);
+	border-top-color: var(--primary);
+	border-radius: 50%;
+	animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+	margin-bottom: 1.5rem; filter: drop-shadow(0 0 10px var(--primary-glow));
+}
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.loader-overlay p {
+	font-family: 'Outfit';
+	font-weight: 700;
+	color: white;
+	letter-spacing: 1px;
+	animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+	0,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
+/* ALERTS PRECIS */
+.alert-box {
+	padding: 1.25rem 2.5rem;
+	border-radius: 20px;
+	font-weight: 800;
+	font-family: 'Outfit';
+	position: fixed;
+	top: 2rem;
+	right: 2rem;
+	z-index: 10000;
+	box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+	animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+.alert-box.success {
+	background: var(--grad-main);
+	color: white;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+@keyframes slideInRight {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Indicateur de mode */
+.mode-indicator {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	transition: all 0.3s ease;
+	animation: pulse-slow 2s infinite;
+}
+.mode-indicator.admin {
+	background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+	color: white;
+	box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+.mode-indicator.agent {
+	background: linear-gradient(135deg, #10b981, #059669);
+	color: white;
+	box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+.mode-indicator.supervisor {
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	color: white;
+	box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+.mode-indicator i {
+	font-size: 0.6rem;
+	animation: pulse-dot 1.5s infinite;
+}
+@keyframes pulse-dot {
+	0,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}</style><script>
+const App = {
+        token: localStorage.getItem('zanova_token'),
+        theme: localStorage.getItem('zanova_theme') || 'dark',
+        isSidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        currentRole: localStorage.getItem('zanova_current_role') || 'admin', // 'admin', 'agent' ou 'supervisor'
+        userData: null,
+
+        init() {
+            this.applyTheme();
+            this.applySidebarState();
+            this.bindEvents();
+            if (this.token) {
+                this.bootApp();
+                // Plus besoin d'initialiser ici, c'est fait dans bootApp()
+            }
+        },
+
+        bindEvents() {
+            document.getElementById('btn-login').addEventListener('click', () => this.login());
+            document.getElementById('btn-logout').addEventListener('click', () => this.logout());
+            document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
+            document.getElementById('mobile-menu-toggle').addEventListener('click', () => this.toggleMobileSidebar());
+
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    item.classList.add('active');
+                    this.switchView(item.dataset.target);
+                    // Fermer le menu mobile après clic
+                    document.getElementById('sidebar').classList.remove('mobile-open');
+                });
+            });
+        },
+
+        toggleTheme() {
+            this.theme = this.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('zanova_theme', this.theme);
+            this.applyTheme();
+        },
+
+        applyTheme() {
+            document.documentElement.setAttribute('data-theme', this.theme);
+        },
+
+        toggleSidebar() {
+            this.isSidebarCollapsed = !this.isSidebarCollapsed;
+            localStorage.setItem('sidebar_collapsed', this.isSidebarCollapsed);
+            this.applySidebarState();
+        },
+
+        applySidebarState() {
+            const sb = document.getElementById('sidebar');
+            if (this.isSidebarCollapsed) sb.classList.add('collapsed');
+            else sb.classList.remove('collapsed');
+        },
+
+        toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+            
+            // Empêcher le scroll du body quand le menu est ouvert
+            if (sidebar.classList.contains('mobile-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        },
+
+        async login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            this.showLoader(true);
+            try {
+                const response = await fetch('/api/login_check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    this.token = data.token;
+                    localStorage.setItem('zanova_token', this.token);
+                    await this.bootApp();
+                } else throw new Error(data.message || "Identifiants invalides");
+            } catch (err) {
+                const errBox = document.getElementById('auth-error');
+                errBox.innerText = err.message;
+                errBox.classList.remove('hidden');
+            } finally { this.showLoader(false); }
+        },
+
+        async bootApp() {
+            this.showLoader(true);
+            try {
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+                if (!response.ok) throw new Error("Expulsion");
+                const result = await response.json();
+                this.userData = result.data;
+                this.renderUI();
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('main-dashboard').classList.remove('hidden');
+                
+                // Initialiser le dashboard APRÈS le boot
+                this.initializeDashboardData();
+            } catch (err) { this.logout(); } finally { this.showLoader(false); }
+        },
+
+        renderUI() {
+            document.getElementById('user-name').innerText = `${this.userData.prenom} ${this.userData.nom}`;
+            document.getElementById('user-role').innerText = this.userData.role_crm;
+            
+            // Afficher le bouton de switch de rôle pour la simulation
+            document.getElementById('btn-switch-role').style.display = 'flex';
+            
+            // Afficher et configurer l'indicateur de mode
+            const modeIndicator = document.getElementById('mode-indicator');
+            const modeText = document.getElementById('mode-text');
+            if (modeIndicator && modeText) {
+                modeIndicator.style.display = 'flex';
+                modeIndicator.className = 'mode-indicator ' + (this.currentRole === 'admin' ? 'admin' : (this.currentRole === 'agent' ? 'agent' : 'supervisor'));
+                modeText.innerText = this.currentRole === 'admin' ? 'Mode Admin' : (this.currentRole === 'agent' ? 'Mode Agent' : 'Mode Superviseur');
+            }
+            
+            if (this.userData.roles.includes('ROLE_RESPONSABLE')) {
+                document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.remove('hidden'));
+            }
+            
+            // Appliquer les restrictions selon le rôle
+            if (this.currentRole === 'agent') {
+                this.applyAgentView();
+            } else if (this.currentRole === 'supervisor') {
+                this.applySupervisorView();
+            }
+        },
+
+        switchView(target) {
+            // Titres personnalisés pour chaque vue
+            const titles = {
+                'dashboard': this.currentRole === 'agent' ? 'Mon Espace Agent' : (this.currentRole === 'supervisor' ? 'Supervision' : 'Tableau de bord'),
+                'statistics': 'Statistiques & Analyse',
+                'campaigns': 'Campagnes',
+                'users': 'Équipe & Accès',
+                'contacts': 'Répertoire Contacts'
+            };
+            
+            document.getElementById('page-title').innerText = titles[target] || target.charAt(0).toUpperCase() + target.slice(1);
+            
+            // Masquer toutes les vues
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            
+            // Mapper les noms de cible vers les IDs de vue corrects
+            const viewMapping = {
+                'dashboard': this.currentRole === 'agent' ? 'agent-overview-view' : (this.currentRole === 'supervisor' ? 'supervisor-overview-view' : 'overview-view'),
+                'statistics': 'statistics-view',
+                'campaigns': 'campaigns-view', 
+                'users': 'users-view',
+                'contacts': 'contacts-view'
+            };
+            
+            const activeView = document.getElementById(viewMapping[target] || target + '-view');
+            if (activeView) {
+                activeView.classList.remove('hidden');
+                
+                // Mettre à jour l'état actif dans la navigation
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                document.querySelector(`[onclick="App.switchView('${target}')"]`)?.classList.add('active');
+                
+                // Recharger les données spécifiques à la vue
+                if (target === 'dashboard') {
+                    if (this.currentRole === 'agent') {
+                        this.initializeAgentDashboard();
+                    } else if (this.currentRole === 'supervisor') {
+                        this.initializeSupervisorDashboard();
+                    } else {
+                        this.initializeDashboardData();
+                    }
+                } else if (target === 'statistics') {
+                    this.initializeStatistics();
+                } else if (target === 'campaigns') {
+                    this.loadCampaigns();
+                } else if (target === 'users') {
+                    this.loadUsers();
+                } else if (target === 'contacts') {
+                    this.loadContacts();
+                }
+            }
+        },
+
+        async loadGlobalContacts() {
+            this.showLoader(true);
+            try {
+                const res = await fetch('/api/management/campaigns', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+                const campaigns = await res.json();
+                const container = document.getElementById('contact-campaign-selector');
+                container.innerHTML = campaigns.map(c => `
+                    <div onclick="App.loadCampaignContacts(${c.id})" class="activity-item" style="cursor:pointer; transition:0.2s;">
+                        <strong>${c.nom}</strong>
+                    </div>
+                `).join('');
+            } catch (err) { console.error(err); }
+            finally { this.showLoader(false); }
+        },
+
+        async loadCampaignContacts(campaignId) {
+            this.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/campaigns/${campaignId}/contacts`, {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+                const contacts = await res.json();
+                const tbody = document.getElementById('contact-list-body');
+                
+                tbody.innerHTML = contacts.length ? contacts.map(c => `
+                    <tr>
+                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
+                        <td>${c.telephone}<br><small>${c.email || '-'}</small></td>
+                        <td><span class="badge badge-neutral">${c.source}</span></td>
+                        <td><span class="badge ${c.status === 'nouveau' ? 'badge-primary' : 'badge-success'}">${c.status}</span></td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" style="text-align:center; padding:2rem;">Aucun contact dans cette campagne.</td></tr>';
+            } catch (err) { alert(err.message); }
+            finally { this.showLoader(false); }
+        },
+
+        async loadCampaigns() {
+            console.log("--- Début rechargement campagnes ---");
+            this.showLoader(true);
+            try {
+                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
+                    method: 'GET',
+                    cache: 'no-store', // Désactive le cache navigateur
+                    headers: { 
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                console.log("Données reçues après reload:", data);
+                
+                if (!Array.isArray(data)) {
+                    console.error("Data received is not an array:", data);
+                    throw new Error(data.message || "Réponse invalide du serveur");
+                }
+
+                const tbody = document.getElementById('campaign-list-body');
+                tbody.innerHTML = data.length ? data.map(c => `
+                    <tr>
+                        <td><strong>${c.nom}</strong><br><small style="color:var(--text-dim)">ID: ${c.id}</small></td>
+                        <td>${c.date_debut || '-'} / ${c.date_fin || '-'}</td>
+                        <td>${c.responsable || 'Non assigné'}</td>
+                        <td><span class='badge'>${c.contacts_count}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button onclick="UI.manageAssignments(${c.id})" class="btn-action" title="Affectations">🤝</button>
+                                <button onclick="UI.manageFields(${c.id})" class="btn-action" title="Formulaire">📋</button>
+                                <button onclick="UI.editCampaign(${c.id})" class="btn-action">✏️</button>
+                                <button onclick="UI.deleteCampaign(${c.id})" class="btn-action delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Aucune campagne trouvée</td></tr>';
+            } catch (err) { 
+                console.error("LoadCampaigns Error:", err);
+                alert("Erreur: " + err.message);
+            }
+            finally { this.showLoader(false); }
+        },
+
+        async loadUsers() {
+            this.showLoader(true);
+            try {
+                const res = await fetch('/api/management/users?t=' + Date.now(), {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                
+                if (!Array.isArray(data)) {
+                    throw new Error(data.message || "Réponse invalide du serveur");
+                }
+
+                const tbody = document.getElementById('user-list-body');
+                tbody.innerHTML = data.map(u => {
+                    const roleClass = u.role === 'responsable' ? 'badge-admin' : (u.role === 'superviseur' ? 'badge-primary' : 'badge-neutral');
+                    const statusClass = u.status === 'active' ? 'badge-success' : 'badge-danger';
+                    return `
+                        <tr>
+                            <td><div style="display:flex; align-items:center; gap:12px;">
+                                <div class="user-avatar" style="width:32px; height:32px; font-size:0.8rem;">${u.prenom[0]}</div>
+                                <strong>${u.prenom} ${u.nom}</strong>
+                            </div></td>
+                            <td><span style="color:var(--text-dim); font-size:0.9rem;">${u.email}</span></td>
+                            <td><span class="badge ${roleClass}">${u.role}</span></td>
+                            <td><span class="badge ${statusClass}">${u.status}</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button onclick="UI.editUser(${u.id})" class="btn-action">✏️</button>
+                                    <button onclick="UI.deleteUser(${u.id})" class="btn-action delete">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) { 
+                console.error("LoadUsers Error:", err);
+                alert("Erreur: " + err.message);
+            }
+            finally { this.showLoader(false); }
+        },
+
+        showLoader(show) { document.getElementById('global-loader').classList.toggle('hidden', !show); },
+
+        addActivity(msg) {
+            const container = document.getElementById('activity-log');
+            if (!container) return;
+            
+            const empty = container.querySelector('.empty');
+            if (empty) empty.remove();
+
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            item.innerHTML = `<span class="time">${timeStr}</span> <p class="msg">${msg}</p>`;
+            container.prepend(item);
+        },
+
+        // Fonctions Dashboard Responsable
+        updateAgentRanking(criteria) {
+            console.log('Updating agent ranking by:', criteria);
+            // Simuler une mise à jour du classement
+            this.simulateAgentRanking(criteria);
+        },
+
+        simulateAgentRanking(criteria) {
+            const rankingData = {
+                calls: [
+                    { name: 'Martin Dubois', stats: '45 appels • 92% qualification', score: 45, avatar: 'MD', color: 'primary' },
+                    { name: 'Sophie Laurent', stats: '38 appels • 88% qualification', score: 38, avatar: 'SL', color: 'success' },
+                    { name: 'Thomas Bernard', stats: '32 appels • 85% qualification', score: 32, avatar: 'TB', color: 'info' }
+                ],
+                duration: [
+                    { name: 'Sophie Laurent', stats: '38 appels • 3:45 moyenne', score: '3:45', avatar: 'SL', color: 'success' },
+                    { name: 'Martin Dubois', stats: '45 appels • 3:20 moyenne', score: '3:20', avatar: 'MD', color: 'primary' },
+                    { name: 'Thomas Bernard', stats: '32 appels • 2:55 moyenne', score: '2:55', avatar: 'TB', color: 'info' }
+                ],
+                qualification: [
+                    { name: 'Martin Dubois', stats: '45 appels • 92% qualification', score: '92%', avatar: 'MD', color: 'primary' },
+                    { name: 'Sophie Laurent', stats: '38 appels • 88% qualification', score: '88%', avatar: 'SL', color: 'success' },
+                    { name: 'Thomas Bernard', stats: '32 appels • 85% qualification', score: '85%', avatar: 'TB', color: 'info' }
+                ]
+            };
+
+            const data = rankingData[criteria] || rankingData.calls;
+            const container = document.getElementById('top-agents');
+            
+            container.innerHTML = data.map((agent, index) => `
+                <div class="d-flex align-items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200">
+                    <div class="badge bg-${agent.color} text-white rounded-circle p-2 me-3">
+                        <span class="fw-bold">${index + 1}</span>
+                    </div>
+                    <div class="avatar bg-${agent.color} bg-opacity-10 text-${agent.color} rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="fw-bold">${agent.avatar}</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold text-gray-800 dark:text-gray-200">${agent.name}</h6>
+                        <small class="text-gray-500 dark:text-gray-400">${agent.stats}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="h5 mb-0 fw-bold text-${agent.color}">${agent.score}</div>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        filterActivity(type) {
+            console.log('Filtering activity by:', type);
+            // Mettre à jour les boutons Bootstrap
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filtrer les activités (simulation)
+            this.filterActivitiesByType(type);
+        },
+
+        filterActivitiesByType(type) {
+            const activities = {
+                all: [
+                    { icon: 'fa-phone', type: 'call', title: 'Appel terminé - Agent 1', details: 'Contact: +33612345678 • Durée: 3:45', time: 'Il y a 2 min', alert: false, color: 'primary' },
+                    { icon: 'fa-check-circle', type: 'qualification', title: 'Qualification - Agent 2', details: 'Statut: Accepté • Campagne: Vente 2024', time: 'Il y a 5 min', alert: false, color: 'success' },
+                    { icon: 'fa-exclamation-triangle', type: 'alert', title: 'Alerte - Agent 3', details: 'Appel dépasse durée maximale (10 min)', time: 'Il y a 8 min', alert: true, color: 'danger' }
+                ],
+                calls: [
+                    { icon: 'fa-phone', type: 'call', title: 'Appel terminé - Agent 1', details: 'Contact: +33612345678 • Durée: 3:45', time: 'Il y a 2 min', alert: false, color: 'primary' },
+                    { icon: 'fa-phone', type: 'call', title: 'Appel terminé - Agent 2', details: 'Contact: +33698765432 • Durée: 2:15', time: 'Il y a 12 min', alert: false, color: 'primary' }
+                ],
+                qualifications: [
+                    { icon: 'fa-check-circle', type: 'qualification', title: 'Qualification - Agent 2', details: 'Statut: Accepté • Campagne: Vente 2024', time: 'Il y a 5 min', alert: false, color: 'success' },
+                    { icon: 'fa-times-circle', type: 'qualification', title: 'Qualification - Agent 1', details: 'Statut: Refusé • Campagne: Satisfaction', time: 'Il y a 18 min', alert: false, color: 'danger' }
+                ]
+            };
+
+            const container = document.getElementById('activity-log');
+            const data = activities[type] || activities.all;
+            
+            container.innerHTML = data.map(activity => `
+                <div class="d-flex align-items-start p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 ${activity.alert ? 'border border-' + activity.color + '-200' : ''}">
+                    <div class="icon-box bg-${activity.color} bg-opacity-10 text-${activity.color} rounded-lg p-2 me-3">
+                        <i class="fas ${activity.icon}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold text-gray-800 dark:text-gray-200">${activity.title}</h6>
+                        <small class="text-gray-500 dark:text-gray-400">${activity.details}</small>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-gray-400 dark:text-gray-500">${activity.time}</small>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        refreshCampaigns() {
+            console.log('Refreshing campaigns...');
+            // Simuler un rafraîchissement
+            this.simulateCampaignRefresh();
+        },
+
+        simulateCampaignRefresh() {
+            const campaigns = [
+                { name: 'Vente Q1 2024', stats: '48% • 125/250 contacts', progress: 48, color: 'primary' },
+                { name: 'Satisfaction Client', stats: '82% • 95/114 contacts', progress: 82, color: 'success' },
+                { name: 'Prospection Printemps', stats: '23% • 45/195 contacts', progress: 23, color: 'warning' }
+            ];
+
+            const container = document.getElementById('active-campaigns');
+            container.innerHTML = campaigns.map(campaign => `
+                <div class="p-3 mb-3 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 fw-semibold text-gray-800 dark:text-gray-200">${campaign.name}</h6>
+                        <span class="badge bg-${campaign.color} bg-opacity-10 text-${campaign.color}">${campaign.progress}%</span>
+                    </div>
+                    <small class="text-gray-500 dark:text-gray-400 d-block mb-2">${campaign.stats}</small>
+                    <div class="progress bg-gray-200 dark:bg-gray-600 h-2 rounded">
+                        <div class="progress-bar bg-${campaign.color}" style="width: ${campaign.progress}%"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Animation de rafraîchissement du bouton
+            const btn = event.target;
+            const icon = btn.querySelector('i');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+            }, 500);
+        },
+
+        // Ajouter la fonction de supervision
+        refreshSupervision() {
+            console.log('Refreshing supervision...');
+            this.updateSupervisionData();
+        },
+
+        initializeSupervisionData() {
+            const agents = [
+                { name: 'Agent 1', status: 'available', duration: '00:00', callStatus: 'En attente', alert: false },
+                { name: 'Agent 2', status: 'in-call', duration: '02:45', callStatus: 'En cours', alert: false },
+                { name: 'Agent 3', status: 'in-call', duration: '08:30', callStatus: 'Dépassement', alert: true }
+            ];
+
+            const container = document.getElementById('realtime-supervision');
+            container.innerHTML = agents.map((agent, index) => `
+                <div class="d-flex align-items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 ${agent.alert ? 'border border-danger' : ''}">
+                    <div class="avatar bg-${agent.status === 'in-call' ? 'success' : 'primary'} bg-opacity-10 text-${agent.status === 'in-call' ? 'success' : 'primary'} rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <span class="fw-bold">${String.fromCharCode(65 + index)}</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold text-gray-800 dark:text-gray-200">${agent.name}</h6>
+                        <span class="badge bg-${agent.status === 'in-call' ? 'success' : 'primary'} bg-opacity-10 text-${agent.status === 'in-call' ? 'success' : 'primary'}">
+                            ${agent.status === 'in-call' ? 'En appel' : 'Disponible'}
+                        </span>
+                    </div>
+                    <div class="text-end">
+                        <div class="h6 mb-0 fw-bold ${agent.alert ? 'text-danger' : 'text-gray-800 dark:text-gray-200'}">${agent.duration}</div>
+                        <small class="${agent.alert ? 'text-danger' : 'text-gray-500 dark:text-gray-400'}">${agent.callStatus}</small>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        // Fonctions Statistiques
+        initializeStatistics() {
+            console.log('Initializing statistics...');
+            
+            // Écouter les changements de filtre temporel
+            document.getElementById('time-filter').addEventListener('change', (e) => {
+                if (e.target.value === 'custom') {
+                    document.getElementById('custom-date-filter').classList.remove('hidden');
+                } else {
+                    document.getElementById('custom-date-filter').classList.add('hidden');
+                    this.loadStatisticsData(e.target.value);
+                }
+            });
+
+            // Charger les données initiales
+            this.loadStatisticsData('week');
+            this.initializeCharts();
+            this.renderRoleSpecificStats();
+        },
+
+        loadStatisticsData(period) {
+            console.log('Loading statistics for period:', period);
+            
+            // Simuler les données selon la période
+            const mockData = {
+                today: {
+                    totalCalls: 45,
+                    avgDuration: '3:25',
+                    conversion: 12,
+                    quality: 85
+                },
+                week: {
+                    totalCalls: 287,
+                    avgDuration: '4:12',
+                    conversion: 18,
+                    quality: 88
+                },
+                month: {
+                    totalCalls: 1245,
+                    avgDuration: '3:58',
+                    conversion: 15,
+                    quality: 86
+                }
+            };
+
+            const data = mockData[period] || mockData.week;
+            
+            // Animer les KPIs
+            this.animateCounter('stat-total-calls', data.totalCalls);
+            document.getElementById('stat-avg-duration').textContent = data.avgDuration;
+            this.animateCounter('stat-conversion', data.conversion, '%');
+            this.animateCounter('stat-quality', data.quality, '/100');
+
+            // Mettre à jour les graphiques
+            this.updateCharts(period);
+        },
+
+        initializeCharts() {
+            // Graphique d'évolution des appels
+            const callsCtx = document.getElementById('calls-chart').getContext('2d');
+            this.callsChart = new Chart(callsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                    datasets: [{
+                        label: 'Appels réussis',
+                        data: [65, 78, 90, 81, 96, 85, 70],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Appels manqués',
+                        data: [28, 32, 25, 30, 22, 28, 35],
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Graphique de répartition par statut
+            const statusCtx = document.getElementById('status-chart').getContext('2d');
+            this.statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Réussis', 'Manqués', 'En cours', 'Qualifiés'],
+                    datasets: [{
+                        data: [287, 95, 23, 156],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(99, 102, 241, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        },
+
+        updateCharts(period) {
+            // Simuler des données différentes selon la période
+            const chartData = {
+                today: {
+                    calls: [45, 38, 52, 41, 48, 35, 28],
+                    missed: [12, 15, 8, 18, 10, 14, 20]
+                },
+                week: {
+                    calls: [65, 78, 90, 81, 96, 85, 70],
+                    missed: [28, 32, 25, 30, 22, 28, 35]
+                },
+                month: {
+                    calls: [125, 145, 160, 138, 175, 165, 140],
+                    missed: [55, 62, 48, 58, 42, 52, 65]
+                }
+            };
+
+            if (this.callsChart && chartData[period]) {
+                this.callsChart.data.datasets[0].data = chartData[period].calls;
+                this.callsChart.data.datasets[1].data = chartData[period].missed;
+                this.callsChart.update();
+            }
+        },
+
+        renderRoleSpecificStats() {
+            const container = document.getElementById('role-specific-stats');
+            const userRole = this.userData?.role_crm || 'agent';
+            
+            let content = '';
+            
+            switch(userRole) {
+                case 'responsable':
+                    content = this.renderResponsableStats();
+                    break;
+                case 'superviseur':
+                    content = this.renderSuperviseurStats();
+                    break;
+                case 'agent':
+                    content = this.renderAgentStats();
+                    break;
+                default:
+                    content = '<div class="alert alert-warning">Rôle non reconnu</div>';
+            }
+            
+            container.innerHTML = content;
+        },
+
+        renderResponsableStats() {
+            return `
+                <div class="row g-4">
+                    <!-- Statistiques par campagne -->
+                    <div class="col-xl-6">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-bullseye text-primary me-2"></i>Performance par Campagne
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Campagne</th>
+                                                <th>Appels</th>
+                                                <th>Conversion</th>
+                                                <th>Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Vente Q1</strong></td>
+                                                <td>245</td>
+                                                <td><span class="badge bg-success">22%</span></td>
+                                                <td><span class="badge bg-primary">87/100</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Satisfaction</strong></td>
+                                                <td>189</td>
+                                                <td><span class="badge bg-warning">15%</span></td>
+                                                <td><span class="badge bg-info">82/100</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Prospection</strong></td>
+                                                <td>156</td>
+                                                <td><span class="badge bg-danger">8%</span></td>
+                                                <td><span class="badge bg-secondary">75/100</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top agents -->
+                    <div class="col-xl-6">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-trophy text-warning me-2"></i>Classement des Agents
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                ${this.renderTopAgentsList()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+
+        renderSuperviseurStats() {
+            return `
+                <div class="row g-4">
+                    <!-- Statistiques de la campagne assignée -->
+                    <div class="col-12">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-chart-line text-info me-2"></i>Campagne: Vente Q1 2024
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="fw-bold text-primary">245</h4>
+                                            <small class="text-gray-500">Total Appels</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="fw-bold text-success">22%</h4>
+                                            <small class="text-gray-500">Taux Conversion</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="fw-bold text-info">4:15</h4>
+                                            <small class="text-gray-500">Durée Moyenne</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="fw-bold text-warning">87/100</h4>
+                                            <small class="text-gray-500">Score Qualité</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance des agents de la campagne -->
+                    <div class="col-12">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-users text-success me-2"></i>Agents de la Campagne
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                ${this.renderAgentsByCampaign()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+
+        renderAgentStats() {
+            return `
+                <div class="row g-4">
+                    <!-- Mes performances -->
+                    <div class="col-12">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-user text-primary me-2"></i>Mes Performances
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <h6 class="text-gray-600 dark:text-gray-400 mb-3">Aujourd'hui</h6>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Appels effectués</span>
+                                            <strong>12</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Conversions</span>
+                                            <strong class="text-success">2</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Durée moyenne</span>
+                                            <strong>3:45</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-gray-600 dark:text-gray-400 mb-3">Cette semaine</h6>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Appels effectués</span>
+                                            <strong>67</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Conversions</span>
+                                            <strong class="text-success">11</strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Taux conversion</span>
+                                            <strong class="text-primary">16.4%</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historique récent -->
+                    <div class="col-12">
+                        <div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+                            <div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+                                <h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+                                    <i class="fas fa-history text-info me-2"></i>Historique des Appels
+                                </h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Contact</th>
+                                                <th>Durée</th>
+                                                <th>Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>11/02 14:30</td>
+                                                <td>+33612345678</td>
+                                                <td>4:25</td>
+                                                <td><span class="badge bg-success">Converti</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>11/02 13:15</td>
+                                                <td>+33698765432</td>
+                                                <td>2:10</td>
+                                                <td><span class="badge bg-danger">Non intéressé</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>11/02 11:45</td>
+                                                <td>+33611223344</td>
+                                                <td>5:30</td>
+                                                <td><span class="badge bg-warning">À rappeler</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+
+        renderTopAgentsList() {
+            const agents = [
+                { name: 'Martin Dubois', calls: 45, score: 92, rank: 1 },
+                { name: 'Sophie Laurent', calls: 38, score: 88, rank: 2 },
+                { name: 'Thomas Bernard', calls: 32, score: 85, rank: 3 }
+            ];
+
+            return agents.map(agent => `
+                <div class="d-flex align-items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <div class="badge bg-primary text-white rounded-circle p-2 me-3">
+                        ${agent.rank}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-semibold">${agent.name}</h6>
+                        <small class="text-gray-500">${agent.calls} appels</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="h6 mb-0 fw-bold text-primary">${agent.score}/100</div>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        renderAgentsByCampaign() {
+            const agents = [
+                { name: 'Agent 1', calls: 45, conversion: 20, status: 'online' },
+                { name: 'Agent 2', calls: 38, conversion: 24, status: 'online' },
+                { name: 'Agent 3', calls: 32, conversion: 16, status: 'offline' }
+            ];
+
+            return `
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Agent</th>
+                                <th>Appels</th>
+                                <th>Conversion</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${agents.map(agent => `
+                                <tr>
+                                    <td>${agent.name}</td>
+                                    <td>${agent.calls}</td>
+                                    <td><span class="badge bg-${agent.conversion > 20 ? 'success' : 'warning'}">${agent.conversion}%</span></td>
+                                    <td><span class="badge bg-${agent.status === 'online' ? 'success' : 'secondary'}">${agent.status === 'online' ? 'En ligne' : 'Hors ligne'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        },
+
+        refreshStatistics() {
+            const period = document.getElementById('time-filter').value;
+            this.loadStatisticsData(period);
+            
+            // Animation du bouton
+            const btn = event.target.closest('button');
+            const icon = btn.querySelector('i');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+            }, 500);
+        },
+
+        applyCustomDateFilter() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            if (startDate && endDate) {
+                console.log('Applying custom date filter:', startDate, 'to', endDate);
+                // Simuler le chargement pour la période personnalisée
+                this.loadStatisticsData('custom');
+            } else {
+                alert('Veuillez sélectionner une date de début et de fin');
+            }
+        },
+        initializeDashboardData() {
+            // Simuler les KPIs avec animations
+            setTimeout(() => {
+                // Animer les compteurs
+                this.animateCounter('stat-campaigns', 3);
+                this.animateCounter('stat-agents', 12);
+                this.animateCounter('stat-calls', 127);
+                this.animateCounter('stat-qualification', 89, '%');
+                
+                // Mettre à jour les détails
+                document.getElementById('campaigns-progress').textContent = '51% de progression';
+                document.getElementById('agents-status').textContent = '8 en appel / 4 disponible';
+                document.getElementById('calls-duration').textContent = 'Durée moyenne: 3:25';
+                document.getElementById('qualification-trend').textContent = '↑ +5%';
+                
+                // Animer les barres de progression
+                this.animateProgressBar('campaigns-progress-bar', 51);
+                this.animateProgressBar('agents-progress-bar', 67);
+                this.animateProgressBar('calls-progress-bar', 85);
+                this.animateProgressBar('qualification-progress-bar', 89);
+            }, 1000);
+
+            // Initialiser le classement des agents
+            this.simulateAgentRanking('calls');
+            
+            // Initialiser la supervision
+            this.initializeSupervisionData();
+            
+            // Démarrer la supervision en temps réel
+            this.startRealtimeSupervision();
+        },
+
+        animateCounter(elementId, target, suffix = '') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current) + suffix;
+            }, 30);
+        },
+
+        animateProgressBar(elementId, targetWidth) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            setTimeout(() => {
+                element.style.width = targetWidth + '%';
+                element.style.transition = 'width 1.5s ease-out';
+            }, 500);
+        },
+
+        startRealtimeSupervision() {
+            // Simuler les mises à jour en temps réel
+            setInterval(() => {
+                this.updateSupervisionData();
+            }, 5000);
+        },
+
+        updateSupervisionData() {
+            const supervisionItems = document.querySelectorAll('.supervision-item');
+            supervisionItems.forEach((item, index) => {
+                const durationElement = item.querySelector('.call-duration');
+                if (durationElement && !durationElement.classList.contains('warning')) {
+                    // Simuler l'incrémentation du temps
+                    const currentTime = durationElement.textContent;
+                    const [minutes, seconds] = currentTime.split(':').map(Number);
+                    const totalSeconds = minutes * 60 + seconds + 5;
+                    const newMinutes = Math.floor(totalSeconds / 60);
+                    const newSeconds = totalSeconds % 60;
+                    durationElement.textContent = `${newMinutes.toString().padStart(2, '0')}:${newSeconds.toString().padStart(2, '0')}`;
+                    
+                    // Alerte si dépassement
+                    if (totalSeconds > 600) { // 10 minutes
+                        durationElement.classList.add('warning');
+                        item.classList.add('alert-long-call');
+                        const statusElement = item.querySelector('.call-status');
+                        if (statusElement) {
+                            statusElement.textContent = '⚠️ Dépassement';
+                            statusElement.classList.add('warning');
+                        }
+                    }
+                }
+            });
+        },
+
+        logout() {
+            localStorage.removeItem('zanova_token');
+            localStorage.removeItem('zanova_current_role');
+            location.reload();
+        },
+
+        // Méthodes de gestion du rôle
+        switchUserRole() {
+            // Rotation des rôles: admin -> agent -> supervisor -> admin
+            if (this.currentRole === 'admin') {
+                this.currentRole = 'agent';
+            } else if (this.currentRole === 'agent') {
+                this.currentRole = 'supervisor';
+            } else {
+                this.currentRole = 'admin';
+            }
+            
+            localStorage.setItem('zanova_current_role', this.currentRole);
+            
+            // Mettre à jour l'affichage
+            document.getElementById('user-role').innerText = this.currentRole === 'agent' ? 'Agent' : (this.currentRole === 'supervisor' ? 'Superviseur' : 'Admin');
+            
+            // Mettre à jour l'indicateur de mode
+            const modeIndicator = document.getElementById('mode-indicator');
+            const modeText = document.getElementById('mode-text');
+            if (modeIndicator && modeText) {
+                modeIndicator.className = 'mode-indicator ' + (this.currentRole === 'admin' ? 'admin' : (this.currentRole === 'agent' ? 'agent' : 'supervisor'));
+                modeText.innerText = this.currentRole === 'admin' ? 'Mode Admin' : (this.currentRole === 'agent' ? 'Mode Agent' : 'Mode Superviseur');
+            }
+            
+            // Appliquer les restrictions/affichages appropriés
+            if (this.currentRole === 'agent') {
+                this.applyAgentView();
+            } else if (this.currentRole === 'supervisor') {
+                this.applySupervisorView();
+            } else {
+                this.applyAdminView();
+            }
+            
+            // Recharger la vue actuelle
+            const currentView = document.querySelector('.view:not(.hidden)');
+            if (currentView && (currentView.id === 'agent-overview-view' || currentView.id === 'supervisor-overview-view' || currentView.id === 'overview-view')) {
+                this.switchView('dashboard');
+            }
+        },
+
+        applySupervisorView() {
+            // Masquer les éléments d'administration exclusive
+            document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.add('hidden'));
+            
+            // Masquer certains liens de navigation pour les superviseurs
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const onclick = item.getAttribute('onclick');
+                if (onclick && onclick.includes('users')) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = 'flex';
+                }
+            });
+        },
+
+        initializeSupervisorDashboard() {
+            // Simuler les données du superviseur
+            setTimeout(() => {
+                // Charger les données de supervision en temps réel
+                this.loadSupervisorRealtime();
+                
+                // Charger les alertes
+                this.loadSupervisorAlerts();
+                
+                // Charger le classement des agents
+                this.loadSupervisorRanking();
+                
+                // Charger les statistiques de qualification
+                this.loadQualificationStats();
+                
+                // Charger les campagnes supervisées
+                this.loadSupervisorCampaigns();
+            }, 500);
+        },
+
+        loadSupervisorRealtime() {
+            const agents = [
+                { name: 'Martin Dubois', status: 'en_appel', duration: '3m45s', qualification: 'en_attente', campaign: 'Vente Printemps', alert: true },
+                { name: 'Sophie Laurent', status: 'disponible', duration: '-', qualification: '-', campaign: 'Satisfaction', alert: false },
+                { name: 'Thomas Bernard', status: 'pause', duration: '-', qualification: '-', campaign: 'Vente Printemps', alert: false },
+                { name: 'Marie Petit', status: 'en_appel', duration: '5m12s', qualification: 'en_attente', campaign: 'Nouveaux Produits', alert: true },
+                { name: 'Pierre Martin', status: 'disponible', duration: '-', qualification: '-', campaign: 'Satisfaction', alert: false }
+            ];
+            
+            const container = document.getElementById('supervisor-realtime');
+            container.innerHTML = agents.map(agent => `
+                <div class="supervision-item d-flex align-items-center p-3 border rounded mb-2 ${agent.alert ? 'border-warning bg-warning-50' : 'border-gray-200'}">
+                    <div class="agent-avatar me-3">${agent.name.split(' ').map(n => n[0]).join('')}</div>
+                    <div class="flex-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold">${agent.name}</h6>
+                            <span class="badge ${agent.status === 'en_appel' ? 'bg-success' : (agent.status === 'pause' ? 'bg-warning' : 'bg-secondary')} rounded-pill">
+                                ${agent.status === 'en_appel' ? 'En appel' : (agent.status === 'pause' ? 'Pause' : 'Disponible')}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="text-gray-500">Durée: ${agent.duration}</small>
+                            <small class="text-gray-500">Qualification: ${agent.qualification}</small>
+                            <small class="text-gray-500">Campagne: ${agent.campaign}</small>
+                        </div>
+                    </div>
+                    ${agent.alert ? '<i class="fas fa-exclamation-triangle text-warning ms-2"></i>' : ''}
+                </div>
+            `).join('');
+        },
+
+        loadSupervisorAlerts() {
+            const alerts = [
+                { type: 'danger', message: 'Appel #1234 dépasse la durée maximale (10min)', agent: 'Martin Dubois', time: 'Il y a 2 min' },
+                { type: 'warning', message: 'Qualification requise - Appel #1235', agent: 'Marie Petit', time: 'Il y a 5 min' },
+                { type: 'info', message: 'Agent disponible depuis 15min', agent: 'Sophie Laurent', time: 'Il y a 15 min' }
+            ];
+            
+            const container = document.getElementById('supervisor-alerts');
+            document.getElementById('supervisor-alert-count').innerText = alerts.length;
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item d-flex align-items-start mb-2 p-2 border rounded bg-${alert.type}-50 dark:bg-${alert.type}-900/20">
+                    <i class="fas fa-exclamation-triangle text-${alert.type} me-2 mt-1"></i>
+                    <div class="flex-1">
+                        <p class="small mb-1 fw-semibold">${alert.message}</p>
+                        <div class="d-flex justify-content-between">
+                            <small class="text-gray-500">${alert.agent}</small>
+                            <span class="text-gray-400 text-xs">${alert.time}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        loadSupervisorRanking() {
+            const ranking = [
+                { name: 'Martin Dubois', stats: '45 appels • 92% qualification', score: 45, avatar: 'MD', color: 'primary' },
+                { name: 'Sophie Laurent', stats: '42 appels • 88% qualification', score: 42, avatar: 'SL', color: 'success' },
+                { name: 'Thomas Bernard', stats: '38 appels • 85% qualification', score: 38, avatar: 'TB', color: 'info' },
+                { name: 'Marie Petit', stats: '35 appels • 90% qualification', score: 35, avatar: 'MP', color: 'warning' },
+                { name: 'Pierre Martin', stats: '32 appels • 82% qualification', score: 32, avatar: 'PM', color: 'secondary' }
+            ];
+            
+            const container = document.getElementById('supervisor-top-agents');
+            container.innerHTML = ranking.map((agent, index) => `
+                <div class="ranking-item d-flex align-items-center p-3 border rounded mb-2">
+                    <div class="rank-badge me-3">
+                        <span class="badge bg-${agent.color} rounded-pill">${index + 1}</span>
+                    </div>
+                    <div class="agent-avatar me-3">${agent.avatar}</div>
+                    <div class="flex-1">
+                        <h6 class="mb-1 fw-semibold">${agent.name}</h6>
+                        <p class="text-gray-500 small mb-0">${agent.stats}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-${agent.color}">${agent.score}</div>
+                        <small class="text-gray-500">points</small>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        loadQualificationStats() {
+            // Créer un graphique de qualification simple
+            const canvas = document.getElementById('qualification-chart');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const data = {
+                labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+                datasets: [{
+                    label: 'Taux de qualification',
+                    data: [85, 88, 82, 90, 87, 92, 86],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            };
+            
+            // Graphique simple
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        },
+
+        loadSupervisorCampaigns() {
+            const campaigns = [
+                { name: 'Vente Printemps 2024', progress: 75, agents: 5, calls: 1250, qualification: 87, status: 'active', alerts: 2 },
+                { name: 'Satisfaction Client', progress: 60, agents: 3, calls: 890, qualification: 92, status: 'active', alerts: 0 },
+                { name: 'Nouveaux Produits', progress: 45, agents: 4, calls: 670, qualification: 78, status: 'active', alerts: 1 },
+                { name: 'Rappel Clients', progress: 30, agents: 2, calls: 340, qualification: 85, status: 'paused', alerts: 0 }
+            ];
+            
+            const container = document.getElementById('supervisor-campaigns');
+            container.innerHTML = campaigns.map(campaign => `
+                <div class="campaign-card mb-3 p-3 border rounded-lg ${campaign.alerts > 0 ? 'border-warning' : ''}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 fw-bold">${campaign.name}</h6>
+                        <div>
+                            <span class="badge ${campaign.status === 'active' ? 'bg-success' : 'bg-secondary'} rounded-pill me-2">${campaign.status === 'active' ? 'Active' : 'En pause'}</span>
+                            ${campaign.alerts > 0 ? `<span class="badge bg-warning rounded-pill">${campaign.alerts} alerte(s)</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600" style="width: ${campaign.progress}%"></div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <small class="text-gray-500 d-block">Agents</small>
+                            <strong>${campaign.agents}</strong>
+                        </div>
+                        <div class="col-3">
+                            <small class="text-gray-500 d-block">Appels</small>
+                            <strong>${campaign.calls}</strong>
+                        </div>
+                        <div class="col-3">
+                            <small class="text-gray-500 d-block">Qualification</small>
+                            <strong>${campaign.qualification}%</strong>
+                        </div>
+                        <div class="col-3">
+                            <small class="text-gray-500 d-block">Progression</small>
+                            <strong>${campaign.progress}%</strong>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        refreshSupervision() {
+            this.loadSupervisorRealtime();
+            this.loadSupervisorAlerts();
+        },
+
+        updateSupervisorRanking(criteria) {
+            console.log('Updating supervisor ranking by:', criteria);
+            this.loadSupervisorRanking();
+        },
+
+        refreshQualificationStats() {
+            this.loadQualificationStats();
+        },
+
+        filterSupervisorCampaigns(filter) {
+            console.log('Filtering supervisor campaigns:', filter);
+            this.loadSupervisorCampaigns();
+        },
+
+        applyAgentView() {
+            // Masquer les éléments d'administration
+            document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.add('hidden'));
+            
+            // Masquer les liens de navigation non autorisés pour les agents
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                const onclick = item.getAttribute('onclick');
+                if (onclick && (onclick.includes('users') || onclick.includes('campaigns'))) {
+                    item.style.display = 'none';
+                } else {
+                    item.style.display = 'flex';
+                }
+            });
+        },
+
+        applyAdminView() {
+            // Afficher les éléments d'administration
+            if (this.userData.roles.includes('ROLE_RESPONSABLE')) {
+                document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.remove('hidden'));
+            }
+            
+            // Afficher tous les liens de navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.style.display = 'flex';
+            });
+        },
+
+        initializeAgentDashboard() {
+            // Simuler les données de l'agent
+            setTimeout(() => {
+                // KPIs Agent
+                this.animateCounter('agent-stat-calls', 42);
+                this.animateCounter('agent-stat-duration', 185, 's');
+                this.animateCounter('agent-stat-qualification', 87, '%');
+                this.animateCounter('agent-stat-score', 856);
+                
+                // Progress bars
+                document.getElementById('agent-calls-progress-bar').style.width = '70%';
+                document.getElementById('agent-duration-progress-bar').style.width = '85%';
+                document.getElementById('agent-qualification-progress-bar').style.width = '87%';
+                document.getElementById('agent-score-progress-bar').style.width = '92%';
+                
+                // Textes descriptifs
+                document.getElementById('agent-calls-progress').innerText = '70% de l\'objectif';
+                document.getElementById('agent-duration-status').innerText = 'Dans la norme';
+                document.getElementById('agent-qualification-status').innerText = 'Excellent';
+                document.getElementById('agent-score-rank').innerText = 'Top 5';
+                
+                // Charger les campagnes de l'agent
+                this.loadAgentCampaigns();
+                
+                // Charger l'activité récente
+                this.loadAgentActivity();
+                
+                // Charger les alertes
+                this.loadAgentAlerts();
+            }, 500);
+        },
+
+        loadAgentCampaigns() {
+            const campaigns = [
+                { name: 'Vente Printemps 2024', progress: 65, calls: 125, objective: 200, status: 'active' },
+                { name: 'Satisfaction Client', progress: 45, calls: 89, objective: 200, status: 'active' },
+                { name: 'Nouveaux Produits', progress: 30, calls: 60, objective: 200, status: 'active' }
+            ];
+            
+            const container = document.getElementById('agent-campaigns');
+            container.innerHTML = campaigns.map(campaign => `
+                <div class="campaign-card mb-3 p-3 border rounded-lg">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 fw-bold">${campaign.name}</h6>
+                        <span class="badge bg-success rounded-pill">${campaign.status === 'active' ? 'Active' : 'Inactive'}</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600" style="width: ${campaign.progress}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-gray-500">${campaign.calls} appels</small>
+                        <small class="text-gray-500">${campaign.progress}%</small>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        loadAgentActivity() {
+            const activities = [
+                { icon: 'fa-phone', type: 'call', title: 'Appel terminé', details: 'Durée: 3m45s • Campagne: Vente Printemps', time: 'Il y a 2 min', color: 'primary' },
+                { icon: 'fa-check-circle', type: 'qualification', title: 'Qualification enregistrée', details: 'Statut: Accepté • Client: Martin D.', time: 'Il y a 5 min', color: 'success' },
+                { icon: 'fa-phone', type: 'call', title: 'Appel terminé', details: 'Durée: 2m15s • Campagne: Satisfaction', time: 'Il y a 15 min', color: 'primary' },
+                { icon: 'fa-times-circle', type: 'qualification', title: 'Qualification enregistrée', details: 'Statut: Refusé • Client: Sophie L.', time: 'Il y a 18 min', color: 'danger' }
+            ];
+            
+            const container = document.getElementById('agent-activity-log');
+            container.innerHTML = activities.map(activity => `
+                <div class="activity-item d-flex align-items-start mb-3 p-3 border rounded">
+                    <div class="icon-box bg-${activity.color}-100 dark:bg-${activity.color}-900 rounded p-2 me-3">
+                        <i class="fas ${activity.icon} text-${activity.color}-600 dark:text-${activity.color}-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h6 class="mb-1 fw-semibold">${activity.title}</h6>
+                        <p class="text-gray-500 dark:text-gray-400 small mb-1">${activity.details}</p>
+                        <span class="text-gray-400 text-xs">${activity.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        loadAgentAlerts() {
+            const alerts = [
+                { type: 'warning', message: 'Qualification requise - Appel #1234', time: 'Il y a 1 min' },
+                { type: 'info', message: 'Nouveau contact disponible', time: 'Il y a 5 min' }
+            ];
+            
+            const container = document.getElementById('agent-alerts');
+            document.getElementById('alert-count').innerText = alerts.length;
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item d-flex align-items-start mb-2 p-2 border rounded bg-${alert.type}-50 dark:bg-${alert.type}-900/20">
+                    <i class="fas fa-exclamation-triangle text-${alert.type} me-2 mt-1"></i>
+                    <div class="flex-1">
+                        <p class="small mb-1">${alert.message}</p>
+                        <span class="text-gray-400 text-xs">${alert.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        launchNextCall() {
+            // Simuler le lancement d'un appel
+            const nextCallDiv = document.getElementById('next-call');
+            nextCallDiv.innerHTML = `
+                <div class="text-center py-3">
+                    <i class="fas fa-phone-volume text-4xl text-success mb-3 animate-pulse"></i>
+                    <h6 class="fw-bold text-gray-800 dark:text-gray-100">Appel en cours...</h6>
+                    <p class="text-gray-500 dark:text-gray-400 small mb-3">Jean Dupont - 06 12 34 56 78</p>
+                    <div class="mb-3">
+                        <span class="badge bg-success rounded-pill me-2">00:45</span>
+                        <span class="badge bg-info rounded-pill">Vente Printemps 2024</span>
+                    </div>
+                    <button class="btn btn-danger w-100" onclick="App.endCall()">
+                        <i class="fas fa-phone-slash"></i> Terminer l'appel
+                    </button>
+                </div>
+            `;
+            
+            // Simuler la durée de l'appel
+            let seconds = 45;
+            setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const timeStr = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                const timeBadge = nextCallDiv.querySelector('.badge-success');
+                if (timeBadge) timeBadge.innerText = timeStr;
+            }, 1000);
+        },
+
+        endCall() {
+            // Afficher le formulaire de qualification
+            const nextCallDiv = document.getElementById('next-call');
+            nextCallDiv.innerHTML = `
+                <div class="text-center py-3">
+                    <i class="fas fa-clipboard-check text-4xl text-primary mb-3"></i>
+                    <h6 class="fw-bold text-gray-800 dark:text-gray-100">Qualification requise</h6>
+                    <p class="text-gray-500 dark:text-gray-400 small mb-3">Veuillez qualifier l'appel terminé</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Statut de l'appel</label>
+                        <select class="form-select">
+                            <option value="accepted">Accepté</option>
+                            <option value="refused">Refusé</option>
+                            <option value="negotiation">En négociation</option>
+                            <option value="callback">Rappel</option>
+                            <option value="unreachable">Injoignable</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Notes</label>
+                        <textarea class="form-control" rows="3" placeholder="Ajouter des notes..."></textarea>
+                    </div>
+                    
+                    <button class="btn-glow w-100" onclick="App.submitQualification()">
+                        <i class="fas fa-check"></i> Soumettre la qualification
+                    </button>
+                </div>
+            `;
+        },
+
+        submitQualification() {
+            // Simuler la soumission et revenir à l'état prêt
+            this.loadAgentActivity();
+            document.getElementById('next-call').innerHTML = `
+                <div class="text-center py-3">
+                    <i class="fas fa-phone-volume text-4xl text-primary mb-3"></i>
+                    <h6 class="fw-bold text-gray-800 dark:text-gray-100">Prêt à appeler</h6>
+                    <p class="text-gray-500 dark:text-gray-400 small mb-3">Cliquez pour lancer le prochain appel</p>
+                    <button class="btn-glow w-100" onclick="App.launchNextCall()">
+                        <i class="fas fa-phone"></i> Lancer l'appel
+                    </button>
+                </div>
+            `;
+        }
+    };
+
+    const UI = {
+        async deleteCampaign(id) {
+            if(!confirm("⚠️ Êtes-vous sûr de vouloir supprimer cette campagne ? Cette action est irréversible.")) return;
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/campaigns/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                if(res.ok) {
+                    App.addActivity("Campagne supprimée");
+                    App.loadCampaigns();
+                } else {
+                    throw new Error("Erreur lors de la suppression");
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async editCampaign(id) {
+            App.showLoader(true);
+            try {
+                const res = await fetch('/api/management/campaigns?t=' + Date.now(), {
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                const campaigns = await res.json();
+                const camp = campaigns.find(c => c.id === parseInt(id));
+
+                if (!camp) throw new Error("Campagne introuvable.");
+                this.showCampaignModal(camp);
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        showCampaignModal(existingData = null) {
+            const container = document.getElementById('modal-container');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const saveBtn = document.getElementById('modal-save');
+
+            title.innerText = existingData ? "Modifier la Campagne" : "Créer une nouvelle Campagne";
+            body.innerHTML = `
+                <div class="animate-fade-in">
+                    <input type="hidden" id="m-camp-id" value="${existingData ? existingData.id : ''}">
+                    
+                    <div class="input-group">
+                        <label>Titre de la campagne</label>
+                        <input type="text" id="m-camp-nom" value="${existingData ? existingData.nom : ''}" placeholder="Ex: Campagne Acquisition Mars 2024">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Objectifs & Description</label>
+                        <textarea id="m-camp-desc" placeholder="Décrivez ici les spécificités de cette campagne...">${existingData ? (existingData.description || '') : ''}</textarea>
+                    </div>
+
+                    <div class="modal-grid">
+                        <div class="input-group">
+                            <label>Date de Lancement</label>
+                            <input type="date" id="m-camp-start" value="${existingData ? (existingData.date_debut || '') : ''}">
+                        </div>
+                        <div class="input-group">
+                            <label>Échéance (Fin)</label>
+                            <input type="date" id="m-camp-end" value="${existingData ? (existingData.date_fin || '') : ''}">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            saveBtn.className = "btn-modal-save";
+            saveBtn.innerText = existingData ? "Confirmer les modifications" : "Lancer la campagne";
+            saveBtn.onclick = () => this.saveCampaign(existingData ? 'PUT' : 'POST');
+            container.classList.remove('hidden');
+        },
+
+        async saveCampaign(method) {
+            const id = document.getElementById('m-camp-id').value;
+            const payload = {
+                nom: document.getElementById('m-camp-nom').value,
+                description: document.getElementById('m-camp-desc').value,
+                date_debut: document.getElementById('m-camp-start').value,
+                date_fin: document.getElementById('m-camp-end').value
+            };
+
+            if (!payload.nom) {
+                alert("⚠️ Le titre de la campagne est obligatoire.");
+                return;
+            }
+
+            const url = method === 'PUT' ? `/api/management/campaigns/${id}` : '/api/management/campaigns';
+
+            App.showLoader(true);
+            try {
+                const res = await fetch(url + '?t=' + Date.now(), {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${App.token}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const responseData = await res.json();
+
+                if (res.ok) {
+                    this.closeModal();
+                    App.addActivity(method === 'PUT' ? `Succès: Campagne "${payload.nom}" mise à jour` : `Succès: Campagne "${payload.nom}" créée`);
+                    
+                    // On attend un tout petit peu pour laisser le temps au flush DB de se propager
+                    setTimeout(async () => {
+                        await App.loadCampaigns();
+                        console.log("Liste rafraîchie avec succès");
+                    }, 300);
+
+                    // Message de succès temporaire
+                    const successMsg = document.createElement('div');
+                    successMsg.className = "alert-box success";
+                    successMsg.style.position = "fixed"; successMsg.style.top = "20px"; successMsg.style.right = "20px";
+                    successMsg.innerText = "Données enregistrées avec succès !";
+                    document.body.appendChild(successMsg);
+                    setTimeout(() => successMsg.remove(), 3000);
+                } else {
+                    throw new Error(responseData.error || `Erreur serveur (Code: ${res.status})`);
+                }
+            } catch (err) { 
+                console.error("Save Error:", err);
+                alert("Détails de l'erreur: " + err.message); 
+            }
+            finally { App.showLoader(false); }
+        },
+
+        closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        },
+
+        // --- GESTION ÉQUIPE (USERS) ---
+        showUserModal(existingData = null) {
+            const container = document.getElementById('modal-container');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            const saveBtn = document.getElementById('modal-save');
+
+            title.innerText = existingData ? "Modifier le Membre" : "Ajouter un Membre";
+            body.innerHTML = `
+                <div class="animate-fade-in">
+                    <input type="hidden" id="m-user-id" value="${existingData ? existingData.id : ''}">
+                    <div class="modal-grid">
+                        <div class="input-group">
+                            <label>Prénom</label>
+                            <input type="text" id="m-user-prenom" value="${existingData ? existingData.prenom : ''}" placeholder="Jean">
+                        </div>
+                        <div class="input-group">
+                            <label>Nom</label>
+                            <input type="text" id="m-user-nom" value="${existingData ? existingData.nom : ''}" placeholder="Dupont">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Email professionnel</label>
+                        <input type="email" id="m-user-email" value="${existingData ? existingData.email : ''}" placeholder="jean.dupont@zanova.com">
+                    </div>
+                    <div class="modal-grid">
+                        <div class="input-group">
+                            <label>Rôle Système</label>
+                            <select id="m-user-role" class="modal-select">
+                                <option value="agent" ${existingData && existingData.role === 'agent' ? 'selected' : ''}>Agent (Appelant)</option>
+                                <option value="superviseur" ${existingData && existingData.role === 'superviseur' ? 'selected' : ''}>Superviseur</option>
+                                <option value="responsable" ${existingData && existingData.role === 'responsable' ? 'selected' : ''}>Responsable (Admin)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Statut</label>
+                            <select id="m-user-status" class="modal-select">
+                                <option value="active" ${existingData && existingData.status === 'active' ? 'selected' : ''}>Actif</option>
+                                <option value="inactive" ${existingData && existingData.status === 'inactive' ? 'selected' : ''}>Inactif</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            saveBtn.className = "btn-modal-save";
+            saveBtn.innerText = existingData ? "Enregistrer les modifications" : "Créer le profil";
+            saveBtn.onclick = () => this.saveUser(existingData ? 'PUT' : 'POST');
+            container.classList.remove('hidden');
+        },
+
+        async saveUser(method) {
+            const id = document.getElementById('m-user-id').value;
+            const payload = {
+                prenom: document.getElementById('m-user-prenom').value,
+                nom: document.getElementById('m-user-nom').value,
+                email: document.getElementById('m-user-email').value,
+                role: document.getElementById('m-user-role').value,
+                status: document.getElementById('m-user-status').value
+            };
+
+            const url = method === 'PUT' ? `/api/management/users/${id}` : '/api/management/users';
+            App.showLoader(true);
+            try {
+                const res = await fetch(url + '?t=' + Date.now(), {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    this.closeModal();
+                    App.addActivity(`Membre ${payload.prenom} mis à jour`);
+                    await App.loadUsers();
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error || "Erreur lors de la sauvegarde utilisateur");
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async editUser(id) {
+            App.showLoader(true);
+            try {
+                const res = await fetch('/api/management/users?t=' + Date.now(), {
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                const users = await res.json();
+                const user = users.find(u => u.id === parseInt(id));
+                if (user) this.showUserModal(user);
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async manageFields(campaignId) {
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/campaigns/${campaignId}/fields?t=` + Date.now(), {
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                const fields = await res.json();
+                
+                const container = document.getElementById('modal-container');
+                const title = document.getElementById('modal-title');
+                const body = document.getElementById('modal-body');
+                const saveBtn = document.getElementById('modal-save');
+
+                title.innerText = "Champs du Formulaire";
+                body.innerHTML = `
+                    <div class="animate-fade-in" style="min-width: 500px">
+                        <p style="color:var(--text-dim); margin-bottom:1.5rem;">Définissez les questions que l'agent devra remplir lors de l'appel.</p>
+                        <div id="fields-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
+                            ${fields.map(f => `
+                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
+                                    <div>
+                                        <strong>${f.label}</strong> 
+                                        <span class="badge badge-neutral" style="margin-left:10px">${f.type}</span>
+                                    </div>
+                                    <button onclick="UI.deleteField(${f.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
+                                </div>
+                            `).join('') || '<p style="text-align:center; padding:1rem; opacity:0.5;">Aucun champ configuré</p>'}
+                        </div>
+                        
+                        <div class="panel" style="background:var(--bg-app); padding:1rem;">
+                            <h4 style="margin:0 0 1rem 0; font-family:'Outfit'; font-size:0.9rem;">AJOUTER UN CHAMP</h4>
+                            <div class="modal-grid" style="gap:1rem;">
+                                <div class="input-group">
+                                    <label>Nom du champ</label>
+                                    <input type="text" id="new-field-label" placeholder="ex: Budget Client">
+                                </div>
+                                <div class="input-group">
+                                    <label>Type</label>
+                                    <select id="new-field-type" class="modal-select" style="padding:0.75rem 1rem;">
+                                        <option value="text">Texte</option>
+                                        <option value="number">Nombre</option>
+                                        <option value="date">Date</option>
+                                        <option value="textarea">Commentaire Long</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="UI.addField(${campaignId})" class="btn-glow" style="width:100%; margin-top:1rem; justify-content:center;">
+                                <i class="fas fa-plus"></i> Ajouter à la campagne
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                saveBtn.innerText = "Fermer";
+                saveBtn.onclick = () => this.closeModal();
+                container.classList.remove('hidden');
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async addField(campaignId) {
+            const label = document.getElementById('new-field-label').value;
+            const type = document.getElementById('new-field-type').value;
+            if(!label) return alert("Le nom est requis");
+
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/campaigns/${campaignId}/fields`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${App.token}` },
+                    body: JSON.stringify({ label, type, required: false })
+                });
+                if(res.ok) {
+                    App.addActivity("Nouveau champ ajouté");
+                    this.manageFields(campaignId);
+                }
+            } catch (err) { alert("Erreur: " + err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async deleteField(fieldId, campaignId) {
+            if(!confirm("Supprimer ce champ ?")) return;
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/fields/${fieldId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                if(res.ok) {
+                    App.addActivity("Champ supprimé");
+                    this.manageFields(campaignId);
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async manageAssignments(campaignId) {
+            App.showLoader(true);
+            try {
+                const resAss = await fetch(`/api/management/campaigns/${campaignId}/users?t=` + Date.now(), {
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                const assignments = await resAss.json();
+
+                const resAll = await fetch('/api/management/users?t=' + Date.now(), {
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                const allUsers = await resAll.json();
+
+                const container = document.getElementById('modal-container');
+                const title = document.getElementById('modal-title');
+                const body = document.getElementById('modal-body');
+                const saveBtn = document.getElementById('modal-save');
+
+                title.innerText = "Affectations de l'Équipe";
+                body.innerHTML = `
+                    <div class="animate-fade-in" style="min-width: 500px">
+                        <div id="assignment-list" style="margin-bottom:2rem; display:flex; flex-direction:column; gap:10px;">
+                            <label style="font-size:0.75rem; font-weight:800; color:var(--text-dim); text-transform:uppercase;">MEMBRES ACTIFS</label>
+                            ${assignments.map(a => `
+                                <div class="activity-item" style="justify-content:space-between; padding:0.75rem 1rem;">
+                                    <div>
+                                        <strong>${a.nom}</strong> 
+                                        <span class="badge ${a.role === 'responsable' ? 'badge-admin' : 'badge-primary'}" style="margin-left:10px">${a.role}</span>
+                                    </div>
+                                    <button onclick="UI.unassignUser(${a.id}, ${campaignId})" class="btn-action delete" style="padding:4px">🗑️</button>
+                                </div>
+                            `).join('') || '<p style="text-align:center; padding:1.5rem; background:var(--glass); border-radius:12px; opacity:0.5;">Aucun personnel affecté</p>'}
+                        </div>
+
+                        <div class="panel" style="background:var(--bg-app); padding:1.5rem; border:1px solid var(--primary-glow);">
+                            <label style="font-size:0.75rem; font-weight:800; color:var(--primary); text-transform:uppercase; display:block; margin-bottom:1rem;">NOUVELLE AFFECTATION</label>
+                            <div style="display:flex; gap:1rem;">
+                                <select id="assign-user-select" class="modal-select" style="flex:1;">
+                                    <option value="">Sélectionner un membre...</option>
+                                    ${allUsers.filter(u => !assignments.find(a => a.user_id === u.id)).map(u => `
+                                        <option value="${u.id}">${u.prenom} ${u.nom} (${u.role})</option>
+                                    `).join('')}
+                                </select>
+                                <button onclick="UI.doAssign(${campaignId})" class="btn-glow"><i class="fas fa-user-check"></i> Affecter</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                saveBtn.innerText = "Terminer";
+                saveBtn.onclick = () => this.closeModal();
+                container.classList.remove('hidden');
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async doAssign(campaignId) {
+            const userId = document.getElementById('assign-user-select').value;
+            if(!userId) return;
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/campaigns/${campaignId}/assign/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                if(res.ok) {
+                    App.addActivity("Membre affecté");
+                    this.manageAssignments(campaignId);
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error);
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async unassignUser(assignmentId, campaignId) {
+            if(!confirm("Retirer ce membre ?")) return;
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/assignments/${assignmentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                if(res.ok) {
+                    App.addActivity("Membre retiré");
+                    this.manageAssignments(campaignId);
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        },
+
+        async deleteUser(id) {
+            if(!confirm("⚠️ Supprimer ce membre ?")) return;
+            App.showLoader(true);
+            try {
+                const res = await fetch(`/api/management/users/${id}?t=` + Date.now(), {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${App.token}` }
+                });
+                if (res.ok) {
+                    App.addActivity("Membre supprimé");
+                    await App.loadUsers();
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error || "Action impossible");
+                }
+            } catch (err) { alert(err.message); }
+            finally { App.showLoader(false); }
+        }
+    };
+
+    App.init();
+</script>
 {% endblock %}
