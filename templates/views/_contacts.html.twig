@@ -1,4 +1,3 @@
-<!-- Vue Contacts -->
 <div id="contacts-view" class="view hidden">
 	<div class="view-header-flex">
 		<div class="title-group">
@@ -13,18 +12,29 @@
 				<h3>Liste des Contacts</h3>
 				<div id="contact-actions-area"></div>
 			</div>
-			{{ include('components/_data-table.html.twig', {
-                'id': 'contact-list-body',
-                'headers': ['Contact', 'Coordonnées', 'Source', 'Statut']
-            }) }}
+			<div class="table-container">
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>Contact</th>
+							<th>Coordonnées</th>
+							<th>Source</th>
+							<th>Statut</th>
+						</tr>
+					</thead>
+					<tbody id="contact-list-body">
+						<tr>
+							<td colspan="4" style="text-align:center; padding:3rem; color:var(--text-dim);">Veuillez sélectionner une campagne à droite.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 		<div class="panel">
 			<div class="panel-header">
 				<h3>Campagnes</h3>
 			</div>
-			<div
-				id="contact-campaign-selector" style="display:flex; flex-direction:column; gap:8px;"><!-- Rempli par JS -->
-			</div>
+			<div id="contact-campaign-selector" style="display:flex; flex-direction:column; gap:8px;"></div>
 		</div>
 	</div>
 </div>

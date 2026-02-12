@@ -1,7 +1,6 @@
-<!-- Overlay de Chargement -->
-<div id="global-loader" class="loader-overlay {{ show|default(false) ? '' : 'hidden' }}">
+<div id="global-loader" class="loader-overlay hidden">
 	<div class="loader-content">
 		<div class="spinner"></div>
-		<p>{{ text|default('Synchronisation Zanova...') }}</p>
+		<p>{{ label|default('Synchronisation Zanova...') }}</p>
 	</div>
 </div>

@@ -1,4 +1,3 @@
-<!-- Vue Équipe -->
 <div id="users-view" class="view hidden">
 	<div class="view-header-flex">
 		<div class="title-group">
@@ -12,9 +11,19 @@
 	</div>
 
 	<div class="panel" style="margin-top: 2.5rem;">
-		{{ include('components/_data-table.html.twig', {
-            'id': 'user-list-body',
-            'headers': ['Membre', 'Email', 'Rôle', 'Statut', 'Actions']
-        }) }}
+		<div class="table-container">
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Membre</th>
+						<th>Email</th>
+						<th>Rôle</th>
+						<th>Statut</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody id="user-list-body"></tbody>
+			</table>
+		</div>
 	</div>
 </div>

@@ -11,9 +11,19 @@
 	</div>
 
 	<div class="panel" style="margin-top: 2.5rem;">
-		{{ include('components/_data-table.html.twig', {
-            'id': 'campaign-list-body',
-            'headers': ['Campagne', 'Période', 'Responsable', 'Contacts', 'Actions']
-        }) }}
+		<div class="table-container">
+			<table class="data-table">
+				<thead>
+					<tr>
+						<th>Campagne</th>
+						<th>Période</th>
+						<th>Responsable</th>
+						<th>Contacts</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody id="campaign-list-body"></tbody>
+			</table>
+		</div>
 	</div>
 </div>

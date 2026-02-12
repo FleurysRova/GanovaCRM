@@ -1,4 +1,3 @@
-<!-- Vue Statistiques -->
 <div
 	id="statistics-view" class="view hidden">
 	<!-- En-tête avec contrôles -->
@@ -23,7 +22,7 @@
 		</div>
 	</div>
 
-	<!-- Filtre personnalisé (masqué par défaut) -->
+	<!-- Filtre personnalisé -->
 	<div id="custom-date-filter" class="row g-3 mb-4 hidden">
 		<div class="col-md-5">
 			<label class="form-label text-gray-600 dark:text-gray-400 small">Date de début</label>
@@ -43,47 +42,77 @@
 
 	<!-- KPIs Principaux -->
 	<div class="row g-4 mb-4">
-		{{ include('components/_stat-card.html.twig', {
-            'color': 'blue',
-            'icon': 'fa-phone-volume',
-            'title': 'Total Appels',
-            'id': 'stat-total-calls',
-            'trend_label': '+8%',
-            'trend_color': 'info'
-        }) }}
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-blue-100 dark:bg-blue-900 rounded-xl p-3">
+							<i class="fas fa-phone-volume text-blue-600 dark:text-blue-400 text-xl"></i>
+						</div>
+						<span class="badge bg-info-subtle text-info rounded-pill">
+							<i class="fas fa-arrow-up text-xs me-1"></i>+8%
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Total Appels</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-total-calls">0</h3>
+				</div>
+			</div>
+		</div>
 
-		{{ include('components/_stat-card.html.twig', {
-            'color': 'green',
-            'icon': 'fa-clock',
-            'title': 'Durée Moyenne',
-            'id': 'stat-avg-duration',
-            'trend_label': '-12s',
-            'trend_icon': 'fa-arrow-down'
-        }) }}
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-green-100 dark:bg-green-900 rounded-xl p-3">
+							<i class="fas fa-clock text-green-600 dark:text-green-400 text-xl"></i>
+						</div>
+						<span class="badge bg-success-subtle text-success rounded-pill">
+							<i class="fas fa-arrow-down text-xs me-1"></i>-12s
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Durée Moyenne</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-avg-duration">0s</h3>
+				</div>
+			</div>
+		</div>
 
-		{{ include('components/_stat-card.html.twig', {
-            'color': 'purple',
-            'icon': 'fa-percentage',
-            'title': 'Taux de Conversion',
-            'id': 'stat-conversion',
-            'trend_label': '+5%',
-            'trend_icon': 'fa-arrow-trend-up',
-            'trend_color': 'warning'
-        }) }}
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-purple-100 dark:bg-purple-900 rounded-xl p-3">
+							<i class="fas fa-percentage text-purple-600 dark:text-purple-400 text-xl"></i>
+						</div>
+						<span class="badge bg-warning-subtle text-warning rounded-pill">
+							<i class="fas fa-arrow-trend-up text-xs me-1"></i>+5%
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Taux de Conversion</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-conversion">0%</h3>
+				</div>
+			</div>
+		</div>
 
-		{{ include('components/_stat-card.html.twig', {
-            'color': 'emerald',
-            'icon': 'fa-trophy',
-            'title': 'Score Qualité',
-            'id': 'stat-quality',
-            'trend_label': 'Top'
-        }) }}
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-emerald-100 dark:bg-emerald-900 rounded-xl p-3">
+							<i class="fas fa-trophy text-emerald-600 dark:text-emerald-400 text-xl"></i>
+						</div>
+						<span class="badge bg-success-subtle text-success rounded-pill">
+							<i class="fas fa-star text-xs me-1"></i>Top
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Score Qualité</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="stat-quality">0/100</h3>
+				</div>
+			</div>
+		</div>
 	</div>
 
-	<!-- Graphiques principaux -->
-	<div
-		class="row g-4 mb-4">
-		<!-- Graphique des appels par jour -->
+	<!-- Graphiques -->
+	<div class="row g-4 mb-4">
 		<div class="col-xl-8">
 			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
 				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
@@ -97,7 +126,6 @@
 			</div>
 		</div>
 
-		<!-- Répartition par statut -->
 		<div class="col-xl-4">
 			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
 				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
@@ -113,7 +141,5 @@
 	</div>
 
 	<!-- Tableaux de détails selon le rôle -->
-	<div
-		id="role-specific-stats"><!-- Contenu dynamique selon le rôle -->
-	</div>
+	<div id="role-specific-stats"></div>
 </div>
