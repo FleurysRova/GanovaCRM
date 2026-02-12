@@ -11,16 +11,11 @@
 {% block body %}
 	{% include 'components/_loader.html.twig' %}
 
-	{# Écran d'authentification #}
-	{% if not authenticated|default(false) %}
-		{% include 'components/_auth-card.html.twig' %}
-	{% endif %}
+	{# Écran d'authentification retiré pour accès direct #}
 
 	{# Layout Application Principal #}
-	<div
-		id="main-dashboard" class="app-layout {{ not authenticated|default(false) ? 'hidden' : '' }}">
-
-		{# Sidebar Navigation #}
+		<div
+		id="main-dashboard" class="app-layout"> {# Sidebar Navigation #}
 		{% include 'components/_sidebar.html.twig' with { 'activeView': 'dashboard' } %}
 
 		{# Overlay mobile #}
@@ -62,5 +57,6 @@
 {% endblock %}
 
 {% block javascripts %}
+	{{ parent() }}
 	<script src="{{ asset('js/dashboard.js') }}"></script>
 {% endblock %}

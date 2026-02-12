@@ -9,42 +9,29 @@ const App = {
         this.applyTheme();
         this.applySidebarState();
         this.bindEvents();
-        if (this.token) {
+
+        // Mode développement : Si pas de token, on simule une session
+        if (!this.token) {
+            console.log("Mode démo activé : simulation d'utilisateur");
+            this.userData = {
+                prenom: "Admin",
+                nom: "Demo",
+                role_crm: "responsable",
+                roles: ["ROLE_RESPONSABLE"]
+            };
+            this.renderUI();
+            this.initializeDashboardData();
+        } else {
             this.bootApp();
         }
     },
 
     bindEvents() {
-        console.log("🛠️ Initialisation des événements...");
-
         const btnLogin = document.getElementById('btn-login');
-        if (btnLogin) {
-            console.log("🔗 Bouton login détecté");
-            // On utilise à la fois onclick dans le HTML et l'écouteur ici pour une compatibilité maximale
-            btnLogin.onclick = (e) => {
-                e.preventDefault();
-                this.login();
-            };
-        } else {
-            console.warn("⚠️ Bouton login NON détecté");
-        }
-
-        // Support de la touche "Entrée"
-        const loginInputs = ['email', 'password'];
-        loginInputs.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        console.log("⌨️ Touche Entrée détectée sur " + id);
-                        this.login();
-                    }
-                });
-            }
-        });
+        if (btnLogin) btnLogin.addEventListener('click', () => this.login());
 
         const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) btnLogout.onclick = () => this.logout();
+        if (btnLogout) btnLogout.addEventListener('click', () => this.logout());
 
         const sbToggle = document.getElementById('sidebar-toggle');
         if (sbToggle) sbToggle.addEventListener('click', () => this.toggleSidebar());
@@ -100,19 +87,8 @@ const App = {
     },
 
     async login() {
-        console.log("🔑 Tentative de connexion...");
-        const emailEl = document.getElementById('email');
-        const passwordEl = document.getElementById('password');
-
-        if (!emailEl || !passwordEl) {
-            console.error("❌ Champs login introuvables");
-            return;
-        }
-
-        const email = emailEl.value;
-        const password = passwordEl.value;
-        console.log("📧 Email:", email);
-
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
         this.showLoader(true);
         try {
             const response = await fetch('/api/login_check', {
@@ -122,16 +98,11 @@ const App = {
             });
             const data = await response.json();
             if (response.ok) {
-                console.log("✅ Connexion réussie, token reçu");
                 this.token = data.token;
                 localStorage.setItem('zanova_token', this.token);
                 await this.bootApp();
-            } else {
-                console.warn("⚠️ Échec connexion:", data.message);
-                throw new Error(data.message || "Identifiants invalides");
-            }
+            } else throw new Error(data.message || "Identifiants invalides");
         } catch (err) {
-            console.error("🔥 Erreur login:", err);
             const errBox = document.getElementById('auth-error');
             if (errBox) {
                 errBox.innerText = err.message;
@@ -507,8 +478,4 @@ const UI = {
     }
 };
 
-// Export App to window to allow inline onclick handlers
-window.App = App;
-
-console.log("🚀 Ganova CRM App Engine Loaded");
 App.init();
