@@ -269,30 +269,27 @@
 		--grad-main: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
 	}
 
-	html {
-		transition: background 0.3s ease;
-	}
-
-	/* GLOBAL */
+	html,
 	body {
 		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 100%;
 		background: var(--bg-app);
 		color: var(--text-main);
 		font-family: 'Inter', sans-serif;
-		height: 100vh;
-		width: 100vw;
 		overflow: hidden;
-		display: flex; /* Added flex to body */
 	}
 
 	#full-app {
-		height: 100vh;
-		width: 100vw;
+		width: 100%;
+		height: 100%;
+		background: var(--bg-app);
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
+		position: relative;
 	}
-
 	.screen {
 		flex: 1;
 		display: flex;
@@ -302,6 +299,11 @@
 		height: 100%;
 		min-height: 0;
 	}
+
+	[data-theme="light"] body {
+		background: var(--bg-app);
+	}
+
 
 	.sidebar-overlay {
 		position: fixed;
@@ -319,18 +321,7 @@
 		opacity: 1;
 	}
 
-	.top-header {
-		padding: 1.25rem 2rem;
-		background: rgba(var(--bg-surface-rgb), 0.8);
-		backdrop-filter: blur(15px);
-		border-bottom: 1px solid var(--border);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		position: sticky;
-		top: 0;
-		z-index: 50;
-	}
+
 	.hidden {
 		display: none !important;
 	}
@@ -524,12 +515,6 @@
 		z-index: 0;
 	}
 
-	.screen {
-		flex: 1;
-		display: flex;
-		position: relative;
-		overflow: hidden;
-	}
 
 	.top-header {
 		padding: 1.25rem 2rem;
@@ -1656,5 +1641,144 @@
 		50% {
 			opacity: 0.5;
 		}
+	}
+
+	/* AUTH CARD PREMIUM STYLES */
+	.auth-card {
+		background: var(--bg-surface);
+		padding: 3rem;
+		border-radius: 32px;
+		border: 1px solid var(--border);
+		width: 100%;
+		max-width: 480px;
+		box-shadow: 0 40px 100px -20px var(--shadow);
+		animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+		display: flex;
+		flex-direction: column;
+		backdrop-filter: blur(10px);
+	}
+
+	#auth-screen {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--bg-app);
+		height: 100vh;
+		width: 100vw;
+	}
+
+	.auth-header {
+		text-align: center;
+		margin-bottom: 2.5rem;
+	}
+
+	.logo-circle {
+		width: 64px;
+		height: 64px;
+		background: var(--grad-main);
+		border-radius: 18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 800;
+		font-size: 2rem;
+		color: white;
+		margin: 0 auto 1.5rem;
+		font-family: 'Outfit';
+		box-shadow: 0 10px 20px var(--primary-glow);
+	}
+
+	.auth-header h1 {
+		font-family: 'Outfit';
+		font-size: 2.25rem;
+		font-weight: 800;
+		margin-bottom: 0.5rem;
+	}
+
+	.auth-header .accent {
+		color: var(--primary);
+	}
+
+	.auth-header p {
+		color: var(--text-dim);
+		font-size: 1rem;
+		font-weight: 500;
+	}
+
+	.auth-body .input-group {
+		margin-bottom: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.auth-body label {
+		font-size: 0.8rem;
+		font-weight: 700;
+		color: var(--text-dim);
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.auth-body input {
+		width: 100%;
+		background: var(--glass);
+		border: 1px solid var(--border);
+		padding: 1.1rem 1.4rem;
+		border-radius: 16px;
+		color: var(--text-main);
+		font-size: 1rem;
+		transition: all 0.3s ease;
+		box-sizing: border-box;
+	}
+
+	.auth-body input:focus {
+		outline: none;
+		border-color: var(--primary);
+		background: var(--bg-app);
+		box-shadow: 0 0 0 5px var(--primary-glow);
+		transform: translateY(-2px);
+	}
+
+	#btn-login {
+		width: 100%;
+		margin-top: 1.5rem;
+		justify-content: center;
+	}
+
+	.auth-footer {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--border);
+		text-align: center;
+	}
+
+	.btn-theme-minimal {
+		background: transparent;
+		border: none;
+		color: var(--text-dim);
+		font-size: 0.9rem;
+		font-weight: 600;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		transition: color 0.3s;
+	}
+
+	.btn-theme-minimal:hover {
+		color: var(--text-main);
+	}
+
+	.alert-box.error {
+		background: rgba(239, 68, 68, 0.9);
+		color: white;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		backdrop-filter: blur(10px);
+		padding: 1rem 1.5rem;
+		border-radius: 12px;
+		margin-bottom: 1.5rem;
+		font-weight: 500;
+		text-align: center;
 	}
 </style>

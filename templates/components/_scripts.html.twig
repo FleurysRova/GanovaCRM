@@ -17,20 +17,37 @@ this.bootApp();
 },
 
 bindEvents() {
-document.getElementById('btn-login').addEventListener('click', () => this.login());
-document.getElementById('btn-logout').addEventListener('click', () => this.logout());
-document.getElementById('sidebar-toggle').addEventListener('click', () => this.toggleSidebar());
-document.getElementById('mobile-menu-toggle').addEventListener('click', () => this.toggleMobileSidebar());
+console.log("App: Binding events...");
+const safeBind = (id, event, fn) => {
+const el = document.getElementById(id);
+if (el) 
+el.addEventListener(event, fn);
+ else 
+console.warn(`App: Element #${id} not found for binding ${event}`);
+
+
+
+};
+
+safeBind('btn-login', 'click', () => this.login());
+safeBind('btn-logout', 'click', () => this.logout());
+safeBind('sidebar-toggle', 'click', () => this.toggleSidebar());
+safeBind('mobile-menu-toggle', 'click', () => this.toggleMobileSidebar());
 
 // Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
 item.addEventListener('click', (e) => {
 e.preventDefault();
+console.log("App: Navigating to", item.dataset.target);
 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 item.classList.add('active');
 this.switchView(item.dataset.target);
-// Fermer le menu mobile après clic
-document.getElementById('sidebar').classList.remove('mobile-open');
+const sb = document.getElementById('sidebar');
+if (sb) 
+sb.classList.remove('mobile-open');
+
+
+
 });
 });
 },
@@ -58,6 +75,8 @@ sb.classList.add('collapsed');
  else 
 sb.classList.remove('collapsed');
 
+
+
 },
 
 toggleMobileSidebar() {
@@ -75,10 +94,26 @@ document.body.style.overflow = '';
 },
 
 async login() {
-const email = document.getElementById('email').value;
-const password = document.getElementById('password').value;
+console.log("App: Login attempt...");
+const emailEl = document.getElementById('email');
+const passwordEl = document.getElementById('password');
+if (! emailEl || ! passwordEl) {
+console.error("App: Login fields not found");
+return;
+}
+
 this.showLoader(true);
+const errBox = document.getElementById('auth-error');
+if (errBox) 
+errBox.classList.add('hidden');
+
+
+
 try {
+const email = emailEl.value;
+const password = passwordEl.value;
+console.log("App: Sending request to /api/login_check for", email);
+
 const response = await fetch('/api/login_check', {
 method: 'POST',
 headers: {
@@ -88,18 +123,27 @@ body: JSON.stringify(
 {email, password}
 )
 });
+
+console.log("App: Response status:", response.status);
 const data = await response.json();
+
 if (response.ok) {
+console.log("App: Login successful, booting app...");
 this.token = data.token;
 localStorage.setItem('zanova_token', this.token);
 await this.bootApp();
-} else 
+} else {
+console.error("App: Login failed:", data.message || "Identifiants invalides");
 throw new Error(data.message || "Identifiants invalides");
-
+}
 } catch (err) {
-const errBox = document.getElementById('auth-error');
+console.error("App: Login error:", err);
+if (errBox) {
 errBox.innerText = err.message;
 errBox.classList.remove('hidden');
+} else {
+alert(err.message);
+}
 } finally {
 this.showLoader(false);
 }
@@ -117,6 +161,8 @@ this.token
 });
 if (! response.ok) 
 throw new Error("Expulsion");
+
+
 
 const result = await response.json();
 this.userData = result.data;
@@ -195,6 +241,8 @@ this.initializeSupervisorDashboard();
  else 
 this.initializeDashboardData();
 
+
+
 } else if (target === 'statistics') 
 this.initializeStatistics();
  else if (target === 'campaigns') 
@@ -203,6 +251,8 @@ this.loadCampaigns();
 this.loadUsers();
  else if (target === 'contacts') 
 this.loadContacts();
+
+
 
 }
 },
@@ -248,8 +298,7 @@ this.token
 const contacts = await res.json();
 const tbody = document.getElementById('contact-list-body');
 
-tbody.innerHTML = contacts.length ? contacts.map(
-c => `
+tbody.innerHTML = contacts.length ? contacts.map(c => `
                     <tr>
                         <td><strong>${
 c.nom
@@ -270,8 +319,7 @@ c.status === 'nouveau' ? 'badge-primary' : 'badge-success'
 c.status
 }</span></td>
                     </tr>
-                `
-).join('') : '<tr><td colspan="4" style="text-align:center; padding:2rem;">Aucun contact dans cette campagne.</td></tr>';
+                `).join('') : '<tr><td colspan="4" style="text-align:center; padding:2rem;">Aucun contact dans cette campagne.</td></tr>';
 } catch (err) {
 alert(err.message);
 } finally {
@@ -297,9 +345,9 @@ if (!Array.isArray(data))
 throw new Error(data.message || "Réponse invalide du serveur");
 
 
+
 const tbody = document.getElementById('campaign-list-body');
-tbody.innerHTML = data.length ? data.map(
-c => `
+tbody.innerHTML = data.length ? data.map(c => `
                     <tr>
                         <td><strong>${
 c.nom
@@ -334,8 +382,7 @@ c.id
                             </div>
                         </td>
                     </tr>
-                `
-).join('') : '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Aucune campagne trouvée</td></tr>';
+                `).join('') : '<tr><td colspan="5" style="text-align:center; padding: 2rem;">Aucune campagne trouvée</td></tr>';
 } catch (err) {
 alert("Erreur: " + err.message);
 } finally {
@@ -359,6 +406,7 @@ this.token
 const data = await res.json();
 if (!Array.isArray(data)) 
 throw new Error(data.message || "Réponse invalide du serveur");
+
 
 
 const tbody = document.getElementById('user-list-body');
@@ -415,9 +463,13 @@ const container = document.getElementById('activity-log');
 if (! container) 
 return;
 
+
+
 const empty = container.querySelector('.empty');
 if (empty) 
 empty.remove();
+
+
 
 const item = document.createElement('div');
 item.className = 'activity-item';
@@ -502,8 +554,9 @@ const container = document.getElementById('top-agents');
 if (! container) 
 return;
 
-container.innerHTML = data.map(
-(agent, index) => `
+
+
+container.innerHTML = data.map((agent, index) => `
                 <div class="d-flex align-items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200">
                     <div class="badge bg-${
 agent.color
@@ -537,14 +590,15 @@ agent.score
 }</div>
                     </div>
                 </div>
-            `
-).join('');
+            `).join('');
 },
 
 filterActivity(type) {
 document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
 if (event.target.classList) 
 event.target.classList.add('active');
+
+
 
 this.filterActivitiesByType(type);
 },
@@ -621,9 +675,10 @@ const container = document.getElementById('activity-log');
 if (! container) 
 return;
 
+
+
 const data = activities[type] || activities.all;
-container.innerHTML = data.map(
-activity => `
+container.innerHTML = data.map(activity => `
                 <div class="d-flex align-items-start p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 ${
 activity.alert ? 'border border-' + activity.color + '-200' : ''
 }">
@@ -650,8 +705,7 @@ activity.time
 }</small>
                     </div>
                 </div>
-            `
-).join('');
+            `).join('');
 },
 
 refreshCampaigns() {
@@ -680,6 +734,8 @@ color: 'warning'
 const container = document.getElementById('active-campaigns');
 if (! container) 
 return;
+
+
 
 container.innerHTML = campaigns.map(campaign => `
                 <div class="p-3 mb-3 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200">
@@ -748,8 +804,9 @@ const container = document.getElementById('realtime-supervision');
 if (! container) 
 return;
 
-container.innerHTML = agents.map(
-(agent, index) => `
+
+
+container.innerHTML = agents.map((agent, index) => `
                 <div class="d-flex align-items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200 ${
 agent.alert ? 'border border-danger' : ''
 }">
@@ -789,8 +846,7 @@ agent.callStatus
 }</small>
                     </div>
                 </div>
-            `
-).join('');
+            `).join('');
 },
 
 initializeStatistics() {
@@ -836,6 +892,8 @@ this.animateCounter('stat-total-calls', data.totalCalls);
 const durationEl = document.getElementById('stat-avg-duration');
 if (durationEl) 
 durationEl.textContent = data.avgDuration;
+
+
 
 this.animateCounter('stat-conversion', data.conversion, '%');
 this.animateCounter('stat-quality', data.quality, '/100');
@@ -1000,6 +1058,8 @@ const container = document.getElementById('role-specific-stats');
 if (! container) 
 return;
 
+
+
 const userRole = this.userData ?. role_crm || 'agent';
 let content = '';
 switch (userRole) {
@@ -1121,6 +1181,8 @@ this.loadStatisticsData('custom');
  else 
 alert('Veuillez sélectionner une date de début et de fin');
 
+
+
 },
 
 initializeDashboardData() {
@@ -1133,9 +1195,13 @@ const cp = document.getElementById('campaigns-progress');
 if (cp) 
 cp.textContent = '51% de progression';
 
+
+
 const as = document.getElementById('agents-status');
 if (as) 
 as.textContent = '8 en appel / 4 disponible';
+
+
 
 this.animateProgressBar('campaigns-progress-bar', 51);
 this.animateProgressBar('agents-progress-bar', 67);
@@ -1149,6 +1215,8 @@ animateCounter(elementId, target, suffix = '') {
 const element = document.getElementById(elementId);
 if (! element) 
 return;
+
+
 
 let current = 0;
 const increment = target / 50;
@@ -1166,6 +1234,8 @@ animateProgressBar(elementId, targetWidth) {
 const element = document.getElementById(elementId);
 if (! element) 
 return;
+
+
 
 setTimeout(() => {
 element.style.width = targetWidth + '%';
@@ -1211,6 +1281,8 @@ this.currentRole = 'supervisor';
  else 
 this.currentRole = 'admin';
 
+
+
 localStorage.setItem('zanova_current_role', this.currentRole);
 document.getElementById('user-role').innerText = this.currentRole === 'agent' ? 'Agent' : (this.currentRole === 'supervisor' ? 'Superviseur' : 'Admin');
 const mi = document.getElementById('mode-indicator');
@@ -1226,6 +1298,8 @@ this.applySupervisorView();
  else 
 this.applyAdminView();
 
+
+
 this.switchView('dashboard');
 },
 
@@ -1237,6 +1311,8 @@ if (oc && oc.includes('users'))
 item.style.display = 'none';
  else 
 item.style.display = 'flex';
+
+
 
 });
 },
@@ -1264,8 +1340,9 @@ const container = document.getElementById('supervisor-realtime');
 if (! container) 
 return;
 
-container.innerHTML = agents.map(
-agent => `<div class="supervision-item d-flex align-items-center p-3 border rounded mb-2 ${
+
+
+container.innerHTML = agents.map(agent => `<div class="supervision-item d-flex align-items-center p-3 border rounded mb-2 ${
 agent.alert ? 'border-warning bg-warning-50' : ''
 }"><div class="agent-avatar me-3">${
 agent.name[0]
@@ -1275,8 +1352,7 @@ agent.name
 agent.status === 'en_appel' ? 'bg-success' : 'bg-secondary'
 }">${
 agent.status
-}</span></div></div>`
-).join('');
+}</span></div></div>`).join('');
 },
 
 loadSupervisorAlerts() {
@@ -1289,6 +1365,8 @@ time: '2m'
 const container = document.getElementById('supervisor-alerts');
 if (! container) 
 return;
+
+
 
 document.getElementById('supervisor-alert-count').innerText = alerts.length;
 container.innerHTML = alerts.map(a => `<div class="alert-item p-2 mb-2 border rounded bg-${
@@ -1310,6 +1388,8 @@ const container = document.getElementById('supervisor-top-agents');
 if (! container) 
 return;
 
+
+
 container.innerHTML = ranking.map(a => `<div class="ranking-item d-flex p-2 border rounded mb-2"><div class="agent-avatar me-2">${
 a.avatar
 }</div><div class="flex-1"><h6>${
@@ -1321,6 +1401,8 @@ loadQualificationStats() {
 const canvas = document.getElementById('qualification-chart');
 if (! canvas) 
 return;
+
+
 
 new Chart(canvas.getContext('2d'), {
 type: 'line',
@@ -1367,6 +1449,8 @@ const container = document.getElementById('supervisor-campaigns');
 if (! container) 
 return;
 
+
+
 container.innerHTML = campaigns.map(c => `<div class="campaign-card p-3 border rounded mb-2"><h6>${
 c.name
 }</h6><div class="progress h-2 mb-2"><div class="progress-bar" style="width:${
@@ -1383,12 +1467,16 @@ item.style.display = 'none';
  else 
 item.style.display = 'flex';
 
+
+
 });
 },
 
 applyAdminView() {
 if (this.userData.roles.includes('ROLE_RESPONSABLE')) 
 document.querySelectorAll('.restricted-responsable').forEach(el => el.classList.remove('hidden'));
+
+
 
 document.querySelectorAll('.nav-item').forEach(item => item.style.display = 'flex');
 },
@@ -1400,6 +1488,8 @@ this.animateCounter('agent-stat-qualification', 87, '%');
 const cp = document.getElementById('agent-calls-progress-bar');
 if (cp) 
 cp.style.width = '70%';
+
+
 
 this.loadAgentCampaigns();
 this.loadAgentActivity();
@@ -1416,6 +1506,8 @@ calls: 125
 const container = document.getElementById('agent-campaigns');
 if (! container) 
 return;
+
+
 
 container.innerHTML = campaigns.map(c => `<div class="campaign-card p-3 border rounded mb-2"><h6>${
 c.name
@@ -1434,6 +1526,8 @@ const container = document.getElementById('agent-activity-log');
 if (! container) 
 return;
 
+
+
 container.innerHTML = acts.map(a => `<div class="activity-item p-2 mb-2 border rounded"><h6>${
 a.title
 }</h6><small>${
@@ -1451,6 +1545,8 @@ const container = document.getElementById('agent-alerts');
 if (! container) 
 return;
 
+
+
 document.getElementById('alert-count').innerText = alerts.length;
 container.innerHTML = alerts.map(a => `<div class="alert-item p-2 mb-2 border rounded bg-${
 a.type
@@ -1464,6 +1560,8 @@ const nc = document.getElementById('next-call');
 if (! nc) 
 return;
 
+
+
 nc.innerHTML = `<div class="text-center py-3"><i class="fas fa-phone-volume text-success mb-3 animate-pulse"></i><h6>Appel en cours...</h6><button class="btn btn-danger w-100" onclick="App.endCall()">Terminer</button></div>`;
 },
 
@@ -1471,6 +1569,8 @@ endCall() {
 const nc = document.getElementById('next-call');
 if (! nc) 
 return;
+
+
 
 nc.innerHTML = `<div class="text-center py-3"><h6>Qualification requise</h6><select class="form-select mb-2"><option>Accepté</option><option>Refusé</option></select><button class="btn-glow w-100" onclick="App.submitQualification()">Soumettre</button></div>`;
 },
@@ -1481,6 +1581,8 @@ const nc = document.getElementById('next-call');
 if (nc) 
 nc.innerHTML = `<div class="text-center py-3"><h6>Prêt à appeler</h6><button class="btn-glow w-100" onclick="App.launchNextCall()">Lancer l'appel</button></div>`;
 
+
+
 }
 };
 
@@ -1488,6 +1590,8 @@ const UI = {
 async deleteCampaign(id) {
 if (!confirm("Supprimer ?")) 
 return;
+
+
 
 App.showLoader(true);
 try {
@@ -1524,6 +1628,8 @@ const camps = await res.json();
 const camp = camps.find(c => c.id === parseInt(id));
 if (camp) 
 this.showCampaignModal(camp);
+
+
 
 } catch (err) {
 alert(err.message);
@@ -1644,6 +1750,8 @@ const u = users.find(u => u.id === parseInt(id));
 if (u) 
 this.showUserModal(u);
 
+
+
 } catch (err) {
 alert(err.message);
 } finally {
@@ -1697,6 +1805,8 @@ body: JSON.stringify(
 if (res.ok) 
 this.manageFields(cid);
 
+
+
 } catch (err) {
 alert(err.message);
 } finally {
@@ -1717,6 +1827,8 @@ App.token
 });
 if (res.ok) 
 this.manageFields(cid);
+
+
 
 } catch (err) {
 alert(err.message);
@@ -1781,6 +1893,8 @@ App.token
 if (res.ok) 
 this.manageAssignments(cid);
 
+
+
 } catch (err) {
 alert(err.message);
 } finally {
@@ -1802,6 +1916,8 @@ App.token
 if (res.ok) 
 this.manageAssignments(cid);
 
+
+
 } catch (err) {
 alert(err.message);
 } finally {
@@ -1812,6 +1928,8 @@ App.showLoader(false);
 async deleteUser(id) {
 if (!confirm("Supprimer ?")) 
 return;
+
+
 
 App.showLoader(true);
 try {
@@ -1826,6 +1944,8 @@ App.token
 if (res.ok) 
 App.loadUsers();
 
+
+
 } catch (err) {
 alert(err.message);
 } finally {
@@ -1834,5 +1954,9 @@ App.showLoader(false);
 }
 };
 
+
+document.addEventListener('DOMContentLoaded', () => {
+console.log("App: DOM fully loaded, initializing...");
 App.init();
+});
 </script>
