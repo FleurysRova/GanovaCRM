@@ -1,0 +1,19 @@
+<div id="campaigns-view" class="view hidden">
+	<div class="view-header-flex">
+		<div class="title-group">
+			<h2 style="font-family: 'Outfit'; font-weight: 800; font-size: 2rem; margin: 0;">Gestion des Campagnes</h2>
+			<p style="color: var(--text-dim); margin: 5px 0 0 0;">Pilotez et optimisez vos opérations d'appels</p>
+		</div>
+		<button onclick="UI.showCampaignModal()" class="btn-glow">
+			<i class="fas fa-plus"></i>
+			Lancer une campagne
+		</button>
+	</div>
+
+	<div class="panel" style="margin-top: 2.5rem;">
+		{{ include('components/_data-table.html.twig', {
+            'id': 'campaign-list-body',
+            'headers': ['Campagne', 'Période', 'Responsable', 'Contacts', 'Actions']
+        }) }}
+	</div>
+</div>

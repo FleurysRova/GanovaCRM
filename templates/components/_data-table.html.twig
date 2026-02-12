@@ -1,0 +1,18 @@
+<div class="table-container">
+	<table class="data-table">
+		<thead>
+			<tr>
+				{% for header in headers %}
+					<th>{{ header }}</th>
+				{% endfor %}
+			</tr>
+		</thead>
+		<tbody id="{{ id }}">
+			{% if items|default([]) is not empty %}
+				{% for item in items %}
+					{# Rendu personnalisé possible ici #}
+				{% endfor %}
+			{% endif %}
+		</tbody>
+	</table>
+</div>

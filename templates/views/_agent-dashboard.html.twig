@@ -1,0 +1,140 @@
+<!-- Vue Overview - Dashboard Agent -->
+<div
+	id="agent-overview-view" class="view hidden">
+	<!-- Mes Performances d'Agent -->
+	<div class="row g-4 mb-4">
+		{{ include('components/_stat-card.html.twig', {
+            'color': 'blue',
+            'icon': 'fa-phone',
+            'title': 'Mes Appels',
+            'id': 'agent-stat-calls',
+            'status_text': '0% de l\'objectif',
+            'trend_label': 'Aujourd\'hui',
+            'trend_icon': 'fa-arrow-up'
+        }) }}
+
+		{{ include('components/_stat-card.html.twig', {
+            'color': 'green',
+            'icon': 'fa-clock',
+            'title': 'Durée Moyenne',
+            'id': 'agent-stat-duration',
+            'status_text': 'Dans la norme',
+            'trend_label': 'Moyenne',
+            'trend_icon': 'fa-chart-line'
+        }) }}
+
+		{{ include('components/_stat-card.html.twig', {
+            'color': 'purple',
+            'icon': 'fa-percentage',
+            'title': 'Taux Qualification',
+            'id': 'agent-stat-qualification',
+            'status_text': 'En attente',
+            'trend_label': 'Qualité',
+            'trend_icon': 'fa-trophy'
+        }) }}
+
+		{{ include('components/_stat-card.html.twig', {
+            'color': 'emerald',
+            'icon': 'fa-star',
+            'title': 'Mon Score',
+            'id': 'agent-stat-score',
+            'status_text': 'Top 10',
+            'trend_label': 'Classement',
+            'trend_icon': 'fa-medal'
+        }) }}
+	</div>
+
+	<!-- Mes Campagnes et Activité -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-bullseye text-primary me-2"></i>Mes Campagnes Actives
+						</h5>
+						<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshAgentCampaigns()">
+							<i class="fas fa-sync-alt"></i>
+						</button>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="agent-campaigns" class="campaign-grid"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-phone-alt text-success me-2"></i>Prochain Appel
+						</h5>
+						<span class="badge bg-success rounded-pill animate-pulse">
+							<i class="fas fa-circle text-xs me-1"></i>Prêt
+						</span>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div id="next-call" class="next-call-info">
+						<div class="text-center py-3">
+							<i class="fas fa-phone-volume text-4xl text-primary mb-3"></i>
+							<h6 class="fw-bold text-gray-800 dark:text-gray-100">Prêt à appeler</h6>
+							<p class="text-gray-500 dark:text-gray-400 small mb-3">Cliquez pour lancer le prochain appel</p>
+							<button class="btn-glow w-100" onclick="App.launchNextCall()">
+								<i class="fas fa-phone"></i>
+								Lancer l'appel
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Activité Récente et Alertes -->
+	<div class="row g-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-history text-info me-2"></i>Mon Activité Récente
+						</h5>
+						<div class="btn-group btn-group-sm" role="group">
+							<button type="button" class="btn btn-outline-primary active" onclick="App.filterAgentActivity('all')">Tout</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('calls')">Appels</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('qualifications')">Qualifications</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="agent-activity-log" class="activity-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-exclamation-triangle text-warning me-2"></i>Alertes
+						</h5>
+						<span class="badge bg-warning rounded-pill" id="alert-count">0</span>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div
+						id="agent-alerts" class="alert-list"><!-- Sera rempli par JavaScript -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
