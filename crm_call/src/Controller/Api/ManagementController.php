@@ -409,4 +409,20 @@ class ManagementController extends AbstractController
         $em->flush();
         return $this->json(['status' => 'success']);
     }
+
+    // --- MONITORING ---
+
+    #[Route('/agents/status', name: 'agents_status_monitor', methods: ['GET'])]
+    public function monitorAgents(EntityManagerInterface $em): JsonResponse
+    {
+        $statuses = $em->getRepository(\App\Entity\AgentStatus::class)->findAll();
+        $data = array_map(fn($s) => [
+            'agent_id' => $s->getAgent()->getId(),
+            'nom' => $s->getAgent()->getNom() . ' ' . $s->getAgent()->getPrenom(),
+            'status' => $s->getStatus(),
+            'updated_at' => $s->getUpdatedAt()->format('H:i:s')
+        ], $statuses);
+
+        return $this->json($data);
+    }
 }
