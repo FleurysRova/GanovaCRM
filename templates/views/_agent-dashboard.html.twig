@@ -1,0 +1,177 @@
+<div
+	id="agent-overview-view" class="view hidden">
+	<!-- KPIs Agent -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-blue-100 dark:bg-blue-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+							<i class="fas fa-phone text-blue-600 dark:text-blue-400 text-xl"></i>
+						</div>
+						<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+							<i class="fas fa-arrow-up text-xs me-1"></i>Aujourd'hui
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Mes Appels</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-calls">0</h3>
+					<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-calls-progress">0% de l'objectif</p>
+				</div>
+				<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+					<div class="progress-bar bg-gradient-to-r from-blue-500 to-blue-600" id="agent-calls-progress-bar" style="width: 0%"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-green-100 dark:bg-green-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+							<i class="fas fa-clock text-green-600 dark:text-green-400 text-xl"></i>
+						</div>
+						<span class="badge bg-info-subtle text-info dark:bg-info-dark dark:text-info-light rounded-pill px-3 py-1">
+							<i class="fas fa-chart-line text-xs me-1"></i>Moyenne
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Durée Moyenne</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-duration">0s</h3>
+					<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-duration-status">Dans la norme</p>
+				</div>
+				<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+					<div class="progress-bar bg-gradient-to-r from-green-500 to-green-600" id="agent-duration-progress-bar" style="width: 0%"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-purple-100 dark:bg-purple-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+							<i class="fas fa-percentage text-purple-600 dark:text-purple-400 text-xl"></i>
+						</div>
+						<span class="badge bg-warning-subtle text-warning dark:bg-warning-dark dark:text-warning-light rounded-pill px-3 py-1">
+							<i class="fas fa-trophy text-xs me-1"></i>Qualité
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Taux Qualification</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-qualification">0%</h3>
+					<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-qualification-status">En attente</p>
+				</div>
+				<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+					<div class="progress-bar bg-gradient-to-r from-purple-500 to-purple-600" id="agent-qualification-progress-bar" style="width: 0%"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-3 col-lg-6">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+				<div class="card-body p-4">
+					<div class="d-flex align-items-center justify-content-between mb-3">
+						<div class="icon-box bg-emerald-100 dark:bg-emerald-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+							<i class="fas fa-star text-emerald-600 dark:text-emerald-400 text-xl"></i>
+						</div>
+						<span class="badge bg-success-subtle text-success dark:bg-success-dark dark:text-success-light rounded-pill px-3 py-1">
+							<i class="fas fa-medal text-xs me-1"></i>Classement
+						</span>
+					</div>
+					<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">Mon Score</h6>
+					<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="agent-stat-score">0</h3>
+					<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="agent-score-rank">Top 10</p>
+				</div>
+				<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+					<div class="progress-bar bg-gradient-to-r from-emerald-500 to-emerald-600" id="agent-score-progress-bar" style="width: 0%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Mes Campagnes et Activité -->
+	<div class="row g-4 mb-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-bullseye text-primary me-2"></i>Mes Campagnes Actives
+						</h5>
+						<button class="btn btn-sm btn-outline-primary rounded-lg" onclick="App.refreshAgentCampaigns()">
+							<i class="fas fa-sync-alt"></i>
+						</button>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div id="agent-campaigns" class="campaign-grid"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-phone-alt text-success me-2"></i>Prochain Appel
+						</h5>
+						<span class="badge bg-success rounded-pill animate-pulse">
+							<i class="fas fa-circle text-xs me-1"></i>Prêt
+						</span>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div id="next-call" class="next-call-info">
+						<div class="text-center py-3">
+							<i class="fas fa-phone-volume text-4xl text-primary mb-3"></i>
+							<h6 class="fw-bold text-gray-800 dark:text-gray-100">Prêt à appeler</h6>
+							<p class="text-gray-500 dark:text-gray-400 small mb-3">Cliquez pour lancer le prochain appel</p>
+							<button class="btn-glow w-100" onclick="App.launchNextCall()">
+								<i class="fas fa-phone"></i>
+								Lancer l'appel
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Activité Récente et Alertes -->
+	<div class="row g-4">
+		<div class="col-xl-8">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-history text-info me-2"></i>Mon Activité Récente
+						</h5>
+						<div class="btn-group btn-group-sm" role="group">
+							<button type="button" class="btn btn-outline-primary active" onclick="App.filterAgentActivity('all')">Tout</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('calls')">Appels</button>
+							<button type="button" class="btn btn-outline-primary" onclick="App.filterAgentActivity('qualifications')">Qualifications</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div id="agent-activity-log" class="activity-list"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-xl-4">
+			<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg rounded-2xl">
+				<div class="card-header bg-transparent border-gray-100 dark:border-gray-700 px-4 py-3">
+					<div class="d-flex align-items-center justify-content-between">
+						<h5 class="card-title mb-0 fw-bold text-gray-800 dark:text-gray-100">
+							<i class="fas fa-exclamation-triangle text-warning me-2"></i>Alertes
+						</h5>
+						<span class="badge bg-warning rounded-pill" id="alert-count">0</span>
+					</div>
+				</div>
+				<div class="card-body p-4">
+					<div id="agent-alerts" class="alert-list"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

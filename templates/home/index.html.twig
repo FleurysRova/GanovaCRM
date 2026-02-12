@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Zanova CRM | High Performance
+{% endblock %}
+
+{% block body %}
+	<div
+		id="full-app" class="theme-dark">
+		{# Components #}
+		{% include 'components/_loader.html.twig' %}
+		{% include 'components/_auth-card.html.twig' %}
+
+		<!-- Dashboard Principal -->
+		<div id="main-dashboard" class="screen hidden">
+			<div id="sidebar-overlay" class="sidebar-overlay" onclick="App.toggleMobileSidebar()"></div>
+
+			{% include 'components/_sidebar.html.twig' %}
+
+			<main class="content-area">
+				{% include 'components/_top-header.html.twig' %}
+
+				<div
+					class="view-content">
+					{# Views #}
+					{% include 'views/_agent-dashboard.html.twig' %}
+					{% include 'views/_supervisor-dashboard.html.twig' %}
+					{% include 'views/_manager-dashboard.html.twig' %}
+					{% include 'views/_statistics.html.twig' %}
+					{% include 'views/_campaigns.html.twig' %}
+					{% include 'views/_contacts.html.twig' %}
+					{% include 'views/_users.html.twig' %}
+				</div>
+
+				{# Modals #}
+				{% include 'components/_modal.html.twig' with {'id': 'modal-container'} %}
+			</main>
+		</div>
+	</div>
+
+	{# External Styles & Assets #}
+	{% include 'components/_styles.html.twig' %}
+	{% include 'components/_scripts.html.twig' %}
+
+{% endblock %}

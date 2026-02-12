@@ -1,0 +1,22 @@
+<div class="col-xl-3 col-lg-6">
+	<div class="card bg-white dark:bg-gray-800 border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden group">
+		<div class="card-body p-4">
+			<div class="d-flex align-items-center justify-content-between mb-3">
+				<div class="icon-box bg-{{ color|default('blue') }}-100 dark:bg-{{ color|default('blue') }}-900 rounded-xl p-3 group-hover:scale-110 transition-transform">
+					<i class="fas {{ icon }} text-{{ color|default('blue') }}-600 dark:text-{{ color|default('blue') }}-400 text-xl"></i>
+				</div>
+				<span class="badge bg-{{ trend_color|default('success') }}-subtle text-{{ trend_color|default('success') }} dark:bg-{{ trend_color|default('success') }}-dark dark:text-{{ trend_color|default('success') }}-light rounded-pill px-3 py-1">
+					<i class="fas {{ trend_icon|default('fa-arrow-up') }} text-xs me-1"></i>
+					{{ trend_label|default(" Aujourd'hui") }}
+				</span>
+			</div>
+			<h6 class="text-gray-500 dark:text-gray-400 text-uppercase fw-semibold mb-2">{{ title }}</h6>
+			<h3 class="fw-bold text-gray-800 dark:text-gray-100 mb-0" id="{{ id }}">{{ value|default('0') }}</h3>
+			<p class="text-gray-500 dark:text-gray-400 small mb-0 mt-2" id="{{ id }}-status">{{ status_text|default('0% de l\'objectif') }}</p>
+		</div>
+		<div class="progress bg-gray-100 dark:bg-gray-700 h-1">
+			<div class="progress-bar bg-gradient-to-r from-{{ color|default('blue') }}-500 to-{{ color|default('blue') }}-600" id="{{ id }}-progress-bar" style="width: {{ progress|default(0) }}%"></div>
+		</div>
+	</div>
+</div>
+ </p>
